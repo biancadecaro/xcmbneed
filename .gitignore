@@ -1,0 +1,17 @@
+example.tar.gz
+JCAP-author-manual.pdf
+
+example
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.pyc
+
+main.bib
+
+src/maps_beta
+src/sims/Needlet
