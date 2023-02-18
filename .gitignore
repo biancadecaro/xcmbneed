@@ -15,3 +15,5 @@ main.bib
 
 src/maps_beta
 src/sims/Needlet
+src/mask/HFI_Mask_GalPlane-apo0_2048_R2.00.fits
+src/noise/COM_CompMap_CMB-commrul_2048_R1.00.fits
