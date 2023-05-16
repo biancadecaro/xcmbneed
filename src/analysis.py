@@ -123,13 +123,15 @@ class HarmAnalysis(Master):
                                         fix_field = hp.read_map(fix_field)
                                 assert( hp.isnpixok(len(fix_field)) )                           
 
-                        dim = (nsim) / nproc
+                        dim = int((nsim) / nproc)
+                        print("dim=",dim)
+
                         if nproc > 1:
                                 if myid < (nsim) % nproc:
                                         dim += 1
-                        #self.ell_binned = Binner(bin_edges=None, lmin=self.lmin, lmax=self.lmax, delta_ell=self.delta_ell, flat=self.flattening)
+                        #self.ell_binned = Binner(bin_edges=None, lmin=self.lmin, lmax=self.lmax, delta_ell=self.delta_ell, flat=self.flattening)#bianca
                         cl_sims = np.zeros((dim,self.ell_binned.size))
-
+                       
                         # Loop over simulations
                         k = 0
                         if (field2 is None) and (fix_field is None): # Field1 x Field1
@@ -285,7 +287,7 @@ class NeedAnalysis(object):
                 print("==>lmax={:d}, jmax={:d}, nside={:d}, B={:e}".format(self.lmax,self.jmax,self.Sims.SimPars['nside'],self.B)) 
                 self.b_values = pippo.mylibpy_needlets_std_init_b_values(self.B, self.jmax, self.lmax)
                 #print(self.b_values, self.b_values.shape)
-                np.savetxt('./b_values_B=%1.2f' %self.B+'.txt',self.b_values)
+                #np.savetxt('./b_values_B=%1.2f' %self.B+'.txt',self.b_values)
                 pippo.mylibpy_needlets_check_windows(self.jmax, self.lmax, self.b_values)
                 self.jvec = np.arange(self.jmax+1)
                 print("...done...")
@@ -377,8 +379,8 @@ class NeedAnalysis(object):
                         betajk2 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map2, self.B, self.jmax, self.lmax)
 
                         #for j in range(self.jmax):
-                        #        hp.write_map(f'./maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'T', betajk1[j,:], overwrite= True)     
-                        #        hp.write_map(f'./maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'G', betajk2[j,:], overwrite= True)     
+                        #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'T', betajk1[j,:], overwrite= True)     
+                        #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'G', betajk2[j,:], overwrite= True)     
                         return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)/fsky
 
         def GetBetajkSims(self, field, nsim, mask=None, fname=None):
@@ -559,7 +561,7 @@ class NeedAnalysis(object):
                                 print('e qua ci entro?')
                                 comm.Barrier() 
                                 print('e da qui ci esco?')
-                print('esco da questa funzione?')
+                #print('esco da questa funzione?')
                 return betaj_sims_tot
 
         def GetCovMatrixFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, fname_sims=None):

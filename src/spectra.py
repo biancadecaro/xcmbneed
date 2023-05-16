@@ -9,7 +9,7 @@ class XCSpectraFile(object):
 		   ncol = 5 -> l, clkg, clgg, clkk, nlkk
 		   ncol = 8 -> l, clkg, clkmu, clgg, clgmu, clmumu, clkk, nlkk
 	"""
-	def __init__(self, clfname, WantTG, nltt,  lmin=None, lmax=None, b=1, alpha=1 ): #BIanca ha agiunto il noise
+	def __init__(self, clfname, WantTG, nltt=None,  lmin=None, lmax=None, b=1, alpha=1 ): #BIanca ha agiunto il noise
 		""" load Cls.
 			! All spectra must be passed from lmin = 0 !
 			 * clfname          = file name to load from.
@@ -21,26 +21,31 @@ class XCSpectraFile(object):
 
 		if WantTG == True:
 			data = np.genfromtxt(clfname)
-
-			#ell = data[0].astype(int)
-			#print(len(ell))
-			
+			self.ell = data[0].astype(int)
+						
 			if lmin == None:
 				lmin = data[0][0].astype(int)
+				
 			
 			if lmax == None:
 				lmax = data[0][-1].astype(int)-1
-
-			self.lmax = lmax
-			self.ell   = np.arange(lmin, lmax, dtype=np.float) #lmax+1
-
+		
+			self.lmax = lmax 
+			self.lmin = lmin
+			#self.ell   = np.arange(lmin, lmax, dtype=np.float) #lmax+1
+		
 			print( 'lmin =', lmin)
 			print( 'lmax =', lmax)
 
-			self.cltt = np.divide(data[1][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[1][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
-			self.cltg =  np.divide(data[2][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[2][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
-			self.clg1g1 = np.divide(data[3][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[3][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
+			self.cltt = data[1]#np.zeros((lmin,(lmax+1))) #np.divide(data[1][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
+			self.cltg =  data[2]#np.zeros((lmin,(lmax+1))) #np.divide(data[2][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
+			self.clg1g1 = data[3]#np.zeros((lmin,(lmax+1))) #np.divide(data[3][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
 			
+			#self.cltt = data[1][lmin:(lmax+1)]#np.divide(data[1][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[1][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
+			#self.cltg =  data[2][lmin:(lmax+1)]#np.divide(data[2][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[2][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
+			#self.clg1g1 = data[3][lmin:(lmax+1)]#np.divide(data[3][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[3][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
+			print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
+
 			if nltt is not None:
 				self.nltt = nltt[lmin:(lmax+1)]
 			else:
@@ -55,9 +60,9 @@ class XCSpectraFile(object):
 			#	self.cltt[l] = self.cltt[l]/(l*(l+1))#[lmin:(lmax+1)]
 			#	self.cltg[l] = self.cltg[l]/(l*(l+1))#[lmin:(lmax+1)]
 			#	self.clg1g1[l] = self.clg1g1[l]/(l*(l+1))#[lmin:(lmax+1)]
-
-			header = 'ell, TT, TG, GG'
-			#np.savetxt('spectra/cl_camb.dat', [ell, self.cltt, self.cltg, self.clg1g1],header = header, fmt='%s' )
+			#print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
+			#header = 'ell, TT, TG, GG'
+			#np.savetxt('spectra/cl_spectra.dat', np.array([self.ell,self.cltt, self.cltg, self.clg1g1]), header = header )
 		
 		else:
 			clarray = np.loadtxt(clfname)
@@ -254,6 +259,7 @@ class NeedletTheory(object):
 			lmin = np.floor(self.B**(j-1))
 			lmax = np.floor(self.B**(j+1))
 			ell  = np.arange(lmin, lmax+1, dtype=np.int)
+			#print(lmin, lmax, j)
 			b2   = self.b_need(ell/self.B**j)*self.b_need(ell/self.B**j)
 			betaj[j] = np.sum(b2*(2.*ell+1.)/4./np.pi*cl[ell])
 		return betaj
