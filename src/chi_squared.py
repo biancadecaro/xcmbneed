@@ -4,8 +4,8 @@ from scipy.stats import chi2
 import matplotlib.pyplot as plt
 
 
-cov = np.loadtxt('output_needlet_TG/Planck/TG_512/cov_TS_galS_jmax12_B1.7422102429630426_nside512.dat', unpack=True)
-beta_j_sims = np.loadtxt('output_needlet_TG/Planck/TG_512/betaj_sims_TS_galS_jmax12_B1.7422102429630426_nside512.dat', unpack=True)
+cov = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/TG_512/cov_TS_galS_jmax10_B1.9467970312828855_nside512.dat', unpack=True)#np.loadtxt('output_needlet_TG/Planck/TG_256_mask_noise_nonoisePlanck/cov_TT_galT_jmax12_B = 1.74 $_nside256_mask.dat', unpack=True)
+beta_j_sims = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/TG_512/betaj_sims_TS_galS_jmax10_B1.9467970312828855_nside512.dat', unpack=True)#np.loadtxt('output_needlet_TG/Planck/TG_256_mask_noise_nonoisePlanck/betaj_sims_TT_galT_jmax12_B_1.7422102429630426_nside256_fsky_0.7004634737968445.dat', unpack=True)
 
 beta_j_mean = np.mean(beta_j_sims, axis=1)
 
@@ -26,21 +26,21 @@ for i in range(1,len(cov[0])):
     chi_squared += (beta_j_sim_400[i]-beta_j_mean[i]).T*temp[i]
 
 
-print('chi squared=', chi_squared, chi2.cdf(chi_squared, 12))
+print('chi squared=', chi_squared, chi2.cdf(chi_squared, beta_j_mean.shape[0]-1))
 
 #Null hypothesis
 
-beta_j_sims_null = np.loadtxt('output_needlet_TG_Null/betaj_sims_TS_galS_jmax12_B1.7422102429630426_nside512.dat', unpack=True)
-beta_j_sim_400_null = beta_j_sims_null[:, 400]
-
-chi_squared_null = 0
-
-temp_n = np.zeros(len(cov[0]))
-for i in range(1,len(cov[0])):
-    for j in range(1,len(beta_j_sim_400)):
-        temp_n[i] += cov_inv[i][j]*(beta_j_sim_400_null[j]-beta_j_sim_400[j])
-    chi_squared_null += (beta_j_sim_400_null[i]-beta_j_sim_400[i]).T*temp_n[i]
-print('chi squared null =' ,chi_squared_null, chi2.cdf(chi_squared_null, 12), chi2.cdf(29.8, 12))
+#beta_j_sims_null = np.loadtxt('output_needlet_TG_Null/betaj_sims_TS_galS_jmax12_B1.7422102429630426_nside512.dat', unpack=True)
+#beta_j_sim_400_null = beta_j_sims_null[:, 400]
+#
+#chi_squared_null = 0
+#
+#temp_n = np.zeros(len(cov[0]))
+#for i in range(1,len(cov[0])):
+#    for j in range(1,len(beta_j_sim_400)):
+#        temp_n[i] += cov_inv[i][j]*(beta_j_sim_400_null[j]-beta_j_sim_400[j])
+#    chi_squared_null += (beta_j_sim_400_null[i]-beta_j_sim_400[i]).T*temp_n[i]
+#print('chi squared null =' ,chi_squared_null, chi2.cdf(chi_squared_null, 12), chi2.cdf(29.8, 12))
 
 
 #simparams = {'nside'   : 512,

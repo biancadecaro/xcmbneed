@@ -17,21 +17,26 @@ import seaborn as sns
 # Matplotlib defaults ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #rc('text',usetex=True)
 #rc('font',**{'family':'serif','serif':['Computer Modern']})
-plt.rcParams['axes.linewidth']  = 3.
-plt.rcParams['axes.labelsize']  = 16
-plt.rcParams['xtick.labelsize'] = 12
-plt.rcParams['ytick.labelsize'] = 12
-plt.rcParams['xtick.major.size'] = 7
-plt.rcParams['ytick.major.size'] = 7
-plt.rcParams['xtick.minor.size'] = 3
-plt.rcParams['ytick.minor.size'] = 3
-plt.rcParams['legend.fontsize']  = 15
+plt.rcParams['axes.linewidth']  = 5.
+plt.rcParams['axes.labelsize']  =30
+plt.rcParams['xtick.labelsize'] =30
+plt.rcParams['ytick.labelsize'] =30
+plt.rcParams['xtick.major.size'] = 30
+plt.rcParams['ytick.major.size'] = 30
+plt.rcParams['xtick.minor.size'] = 30
+plt.rcParams['ytick.minor.size'] = 30
+plt.rcParams['legend.fontsize']  = 'large'
 plt.rcParams['legend.frameon']  = False
-
+plt.rcParams['axes.labelsize'] = 'large'
+plt.rcParams['axes.titlesize'] = 'large'
+rcParams["errorbar.capsize"] = 15
+#
 plt.rcParams['xtick.major.width'] = 1
 plt.rcParams['ytick.major.width'] = 1
 plt.rcParams['xtick.minor.width'] = 1
 plt.rcParams['ytick.minor.width'] = 1
+plt.rcParams['font.size'] = 40
+plt.rcParams['lines.linewidth']  = 5.
 #plt.rcParams['backend'] = 'WX'
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # embed()
@@ -120,11 +125,20 @@ plt.savefig(out_dir+'betaj_mean_T_gal_jmax'+str(jmax)+'_B = %1.2f ' %myanalysis.
 
 beta_j_sim_400 = betaj_sims_TS_galS[9,:]
 delta = need_theory.delta_beta_j(jmax, cltt = xcspectra.cltt, cltg = xcspectra.cltg, clgg = xcspectra.clg1g1)
-fig = plt.figure(figsize=(17,10))
-plt.suptitle(r'$B = %1.2f $' %myanalysis.B + r'$  N_{side} =$'+str(simparams['nside']) + r' $N_{sim} = $'+str(nsim))
+
+
+std = np.zeros(len(myanalysis.jvec))
+for j in range(len(myanalysis.jvec)):
+    std[j]= np.sqrt(np.sum(betaj_sims_TS_galS[:,j]**2)/(nsim-1))
+
+print(delta, np.sqrt(np.diag(cov_TS_galS)), std)
+    
+fig = plt.figure(figsize=(29,17))
+plt.suptitle(r'$D = %1.2f $' %myanalysis.B + r'$ ,~N_{side} =$'+str(simparams['nside']) + r',$~N_{sim} = $'+str(nsim))
 ax = fig.add_subplot(1, 1, 1)
-ax.errorbar(myanalysis.jvec-0.15, betaj_TS_galS_mean, yerr=delta/np.sqrt(nsim-1),fmt='o', label = 'betaj mean')
-ax.errorbar(myanalysis.jvec-0.15, beta_j_sim_400, yerr=delta, fmt='ro', label = 'betaj sim')
+ax.errorbar(myanalysis.jvec-0.15, betaj_TS_galS_mean, yerr=std,fmt='o', label = 'Mean simulation')
+ax.errorbar(myanalysis.jvec-0.15, betatg, yerr=delta,fmt='o', label = 'Theory')
+#ax.errorbar(myanalysis.jvec-0.15, beta_j_sim_400, yerr=delta, fmt='ro', label = 'betaj sim')np.sqrt(np.diag(cov_TS_galS))
 ax.set_ylabel(r'$\beta_j$')
 ax.set_xlabel(r'j')
 plt.legend()
