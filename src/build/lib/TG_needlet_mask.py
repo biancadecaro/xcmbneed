@@ -56,7 +56,7 @@ cov_dir 		= 'covariance/covariance_TG'+str(simparams['nside'])+'_mask/'
 
 jmax = 12
 lmax = 782
-nsim = 250
+nsim = 500
 #B = 1.47
 
 #jmax = round(np.log(lmax*1.00000000000000222045e+00)/np.log(B))
@@ -67,7 +67,7 @@ mask = utils.GetGalMask(simparams['nside'], lat=20.)
 fsky = np.mean(mask)
 
 # Loading theory spectra
-xcspectra = spectra.XCSpectraFile(fname_xcspectra, WantTG = True)
+xcspectra = spectra.XCSpectraFile(fname_xcspectra, WantTG = True, nltt=None)
 
 # Simulations class
 simulations = sims.KGsimulations(xcspectra, sims_dir, simparams, WantTG = True)
@@ -94,8 +94,8 @@ betaj_sims_TS_galS_mask = myanalysis.GetBetajSimsFromMaps('TS', nsim, field2='ga
 
 # Covariances
 print("...computing Cov Matrices...")
-fname_cov_TS_galS      = f'cov_TS_galS_jmax{jmax}_B = %1.2f $' %myanalysis.B +'_nside'+str(simparams['nside'])+'.dat'
-fname_cov_TS_galS_mask      = f'cov_TS_galS_jmax{jmax}_B = %1.2f $' %myanalysis.B +'_nside'+str(simparams['nside'])+'_mask.dat'
+fname_cov_TS_galS      = f'cov_TS_galS_jmax{jmax}_B = %1.2f ' %myanalysis.B +'_nside'+str(simparams['nside'])+'.dat'
+fname_cov_TS_galS_mask      = f'cov_TS_galS_jmax{jmax}_B = %1.2f ' %myanalysis.B +'_nside'+str(simparams['nside'])+'_mask.dat'
 #fname_cov_galS_galS      = 'cov_galS_galS.dat'
 
 #step = 100

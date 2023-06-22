@@ -74,7 +74,7 @@ class HarmAnalysis(Master):
                 if not os.path.exists(self.OutDir):
                     os.makedirs(self.OutDir)
 
-        def GetClSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, fname=None):
+        def GetClSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, fname=None, EuclidSims=False):
                 """
                 Evaluates (auto- or cross-) angular power spectrum for simulated maps of a given field. 
 
@@ -136,15 +136,23 @@ class HarmAnalysis(Master):
                         k = 0
                         if (field2 is None) and (fix_field is None): # Field1 x Field1
                                 for n in range(myid, nsim, nproc): 
-                                        m = self.Sims.GetSimField(field1, n)
+                                        if EuclidSims==True:
+                                                m = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
+                                        else:
+                                                m = self.Sims.GetSimField(field1, n)
                                         cl_sims[k,:] = self.get_spectra(m)
                                         k += 1
                         elif (field2 is not None) and (fix_field is None): # Field1 x Field2
                                 for n in range(myid, nsim, nproc):
-                                        m1 = self.Sims.GetSimField(field1, n)
-                                        m2 = self.Sims.GetSimField(field2, n)
+                                        if EuclidSims==True:
+                                                m1 = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
+                                                m2 = self.Sims.GetSimField_Euclid(field2, n, self.lmax)
+                                        else:
+                                                m1 = self.Sims.GetSimField(field1, n)
+                                                m2 = self.Sims.GetSimField(field2, n)
                                         m1 *= self.mask
                                         m2 *= self.mask
+                                        print(np.sum(self.mask))
                                         m1 = hp.remove_dipole(m1, verbose=False)
                                         m2 = hp.remove_dipole(m2, verbose=False)
                                         inpainting = False #bianca 3/3/2022
@@ -152,14 +160,19 @@ class HarmAnalysis(Master):
                                                 m1 = inp.diffusive_inpaint2(m1, self.mask, niter)
                                                 m2 = inp.diffusive_inpaint2(m2, self.mask, niter)
                                                 #hp.mollview(m1, norm='hist'); hp.mollview(m2, norm='hist'); plt.show()
+                                                
                                                 cl_ = hp.anafast(m1, map2=m2, lmax=self.lmax)
                                                 cl_sims[k,:] = self.bin_spectra(cl_)/self.fsky
                                         else:
                                                 cl_sims[k,:] = self.get_spectra(m1, map2=m2)
+                                                
                                         k += 1
                         elif (field2 is None) and (fix_field is not None): # Field1 x Fix_field (Null-test)
                                 for n in range(myid, nsim, nproc): 
-                                        m1 = self.Sims.GetSimField(field1, n)
+                                        if EuclidSims==True:
+                                                m1 = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
+                                        else:
+                                                m1 = self.Sims.GetSimField(field1, n)
                                         cl_sims[k,:] = self.get_spectra(m1, map2=fix_field)
                                         k += 1
 
@@ -360,6 +373,7 @@ class NeedAnalysis(object):
                 if mask is not None:
                         fsky  = np.mean(mask) 
                         map1 *= mask 
+                        print(f'fsky mappa 1={fsky:0.2f}')
 
                 map1 = hp.remove_dipole(map1, verbose=False)#.compressed()
                 
@@ -373,17 +387,19 @@ class NeedAnalysis(object):
                 else: # Cross-
                         if mask is not None:
                                map2 *= mask 
+                               print(f'fsky mappa 2={np.mean(mask) :0.2f}')
                         map2 = hp.remove_dipole(map2, verbose=False)#.compressed()
                         if inpainting:
                                map2 = inp.diffusive_inpaint2(map2, mask, niter)
+                               print('sono dentro inpainting')
                         betajk2 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map2, self.B, self.jmax, self.lmax)
 
                         #for j in range(self.jmax):
                         #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'T', betajk1[j,:], overwrite= True)     
                         #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'G', betajk2[j,:], overwrite= True)     
-                        return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)/fsky
+                        return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)#/fsky #!! WARN /fsky, result unbiased
 
-        def GetBetajkSims(self, field, nsim, mask=None, fname=None):
+        def GetBetajkSims(self, field, nsim, mask=None, fname=None, EuclidSims=False):
                 """
                 Evaluates needlet coefficients for simulated maps of a given field. 
 
@@ -426,8 +442,11 @@ class NeedAnalysis(object):
 
                         ## Cycle over simulations 
                         k = 0
-                        for n in range(myid, nsim, nproc): 
-                               m = self.Sims.GetSimField(field, n)
+                        for n in range(myid, nsim, nproc):
+                               if EuclidSims==True:
+                                        m = self.Sims.GetSimField_Euclid(field, n, self.lmax)
+                               else:
+                                m = self.Sims.GetSimField(field, n)
                                if mask is not None:
                                        #if hp.isnpixok(mask.size)
                                        m *= mask # TODO: does the library work with masked arrays??
@@ -435,7 +454,7 @@ class NeedAnalysis(object):
                                betajk_sims[k, :] = betajk
                                del betajk
                                k += 1
-                        assert (k == int(dim))
+                        assert (k == int(dim)) 
 #
                         if nproc > 1:
                                betajk_sims_tot = comm.gather(betajk_sims, root=0)
@@ -458,7 +477,7 @@ class NeedAnalysis(object):
 
                 return betajk_sims_tot
         
-        def GetBetajSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, noise=0., inpainting=False, niter=1000, path_inpainting="/u/ap/fbianchini/codes/inpainting/python/inpainting.py"):
+        def GetBetajSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, noise=0., EuclidSims=False, inpainting=False, niter=1000, path_inpainting="/u/ap/fbianchini/codes/inpainting/python/inpainting.py"):
                 """
                 Evaluates needlet (auto- or cross-) power spectrum for simulated maps of a given field. 
 
@@ -482,7 +501,7 @@ class NeedAnalysis(object):
                 betaj_sims : array
                         array with ((nsim, jmax+1)) shape containing needlet coefficients 
                 """
-                print('sono dentro GetBetajSimsFromMaps')
+                #print('sono dentro GetBetajSimsFromMaps')
                 try:
                         from mpi4py import MPI
                         comm = MPI.COMM_WORLD
@@ -521,30 +540,40 @@ class NeedAnalysis(object):
                         k = 0
                         if (field2 is None) and (fix_field is None): # Field1 x Field1
                                 for n in range(myid, nsim, nproc): 
-                                        m1    = self.Sims.GetSimField(field1, n)
+                                        if EuclidSims==True:
+                                                m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
+                                        else:
+                                                m1    = self.Sims.GetSimField(field1, n)
                                         betaj = self.Map2Betaj(m1, k, mask=mask, noise=noise, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         elif (field2 is not None) and (fix_field is None): # Field1 x Field2
                                 for n in range(myid, nsim, nproc): 
-                                        m1    = self.Sims.GetSimField(field1, n)
-                                        m2    = self.Sims.GetSimField(field2, n)
-                                        print('sto calcolando betaj')
+                                        if EuclidSims==True:
+                                                m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
+                                                m2    = self.Sims.GetSimField_Euclid(field2, n, self.lmax)
+                                                print(f'field1={field1}, field2={field2}')
+                                        else:
+                                                m1    = self.Sims.GetSimField(field1, n)
+                                                m2    = self.Sims.GetSimField(field2, n)
+                                        #print('sto calcolando betaj')
                                         betaj = self.Map2Betaj(m1,k, map2=m2, mask=mask, noise=noise, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         elif (field2 is None) and (fix_field is not None): # Field1 x Fix_field (Null-test)
                                 for n in range(myid, nsim, nproc): 
-                                        m1    = self.Sims.GetSimField(field1, n)
+                                        if EuclidSims==True:
+                                                m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
+                                        else:
+                                                m1    = self.Sims.GetSimField(field1, n)
                                         betaj = self.Map2Betaj(m1, k, map2=fix_field, mask=mask, noise=noise, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting, nsim=nsim)
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         print(k, dim)
 
-                        assert (k == int(dim)) #Bianca
+                        #assert (k == int(dim)) #Bianca
 
                         if nproc > 1:
-                                print('qua ci entro?')
                                 betaj_sims_tot = comm.gather(betaj_sims, root=0)
                                 if myid == 0:
                                     betaj_sims_tot = np.vstack((_sims for _sims in betaj_sims_tot)) 
@@ -552,15 +581,12 @@ class NeedAnalysis(object):
                                 betaj_sims_tot = betaj_sims
 
                         if myid == 0: 
-                                print('e qua?')
                                 if fname is not None:
                                         print("...evaluation terminated...")
                                         print("...saving to output " + self.OutDir + fname + "...")
                                         np.savetxt(self.OutDir + fname, betaj_sims_tot)
                         if nproc > 1:
-                                print('e qua ci entro?')
                                 comm.Barrier() 
-                                print('e da qui ci esco?')
                 #print('esco da questa funzione?')
                 return betaj_sims_tot
 
@@ -610,8 +636,7 @@ class NeedAnalysis(object):
 
                 betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask=None, fname=fname_sims)
                 cov_betaj  = np.cov(betaj_sims.T) 
-                print(betaj_sims.T)
-                print('fin qui ci sono')
+                #print('fin qui ci sono')
                    
                 if fname is not None:
                         print("...saving Covariance Matrix to output " + self.OutDir + fname + "...")
@@ -621,7 +646,7 @@ class NeedAnalysis(object):
 
                 return cov_betaj, corr_betaj
 
-        def GetDjkFromMaps(self, field, mask, nsim, fname=None):
+        def GetDjkFromMaps(self, field, mask, nsim, EuclidSims=False, fname=None):
                 """
                 Returns MC averaged difference between needlet coefficients w/ and w/o masking applied.
                 @see arXiv:0707.0844 (Eq. 7)
@@ -654,7 +679,10 @@ class NeedAnalysis(object):
                         betajk2_mean       = np.zeros((self.jmax+1, hp.nside2npix(self.Sims.SimPars['nside'])))
 
                         for n in range(0,nsim):
-                               m = self.Sims.GetSimField(field, n)
+                               if EuclidSims==True:
+                                       m = self.Sims.GetSimField_Euclid(field, n, self.lmax)
+                               else:
+                                m = self.Sims.GetSimField(field, n)
                                betajk      = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(m, self.B, self.jmax, self.lmax)
                                betajk_mask = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(m*mask, self.B, self.jmax, self.lmax)
                                delta2_betajk_mean += (betajk_mask - betajk)**2

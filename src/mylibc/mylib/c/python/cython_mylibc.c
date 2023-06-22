@@ -2428,6 +2428,7 @@ static const char __pyx_k_float64[] = "float64";
 static const char __pyx_k_fortran[] = "fortran";
 static const char __pyx_k_map2alm[] = "map2alm";
 static const char __pyx_k_memview[] = "memview";
+static const char __pyx_k_verbose[] = "verbose";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
 static const char __pyx_k_b_values[] = "b_values";
 static const char __pyx_k_getstate[] = "__getstate__";
@@ -2657,6 +2658,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
+static PyObject *__pyx_n_s_verbose;
 static PyObject *__pyx_n_s_xmax;
 static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_13cython_mylibc_debug_needlets(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
@@ -5564,7 +5566,7 @@ static PyObject *__pyx_pf_13cython_mylibc_14mylibpy_needlets_f2betajk_j_healpix_
   /* "cython_mylibc.pyx":292
  *     #Npix=12*nside**2
  *     #print("f2betajk_j: lmax={:d},nside={:d},j={:d}".format(lmax,nside,pyj))
- *     return alm2map(almxfl(map2alm(Map,lmax=lmax),py_b_values[pyj,:]),lmax=lmax,nside=nside)             # <<<<<<<<<<<<<<
+ *     return alm2map(almxfl(map2alm(Map,lmax=lmax),py_b_values[pyj,:]),lmax=lmax,nside=nside, verbose=False) #BIANCA verbose = false             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -5650,13 +5652,14 @@ static PyObject *__pyx_pf_13cython_mylibc_14mylibpy_needlets_f2betajk_j_healpix_
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 292, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_8 = PyInt_FromSsize_t(__pyx_v_lmax); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_lmax, __pyx_t_8) < 0) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_nside, __pyx_v_nside) < 0) __PYX_ERR(0, 292, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_verbose, Py_False) < 0) __PYX_ERR(0, 292, __pyx_L1_error)
   __pyx_t_8 = __Pyx_PyObject_Call(__pyx_v_alm2map, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -6076,7 +6079,7 @@ static PyObject *__pyx_pf_13cython_mylibc_16mylibpy_needlets_f2betajk_healpix_ha
  *     print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,pyjmax,nside,pyB))
  *     py_betajk=np.empty((pyjmax+1,Npix))             # <<<<<<<<<<<<<<
  *     for j in np.arange(pyjmax+1):
- *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside)
+ *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 326, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -6116,7 +6119,7 @@ static PyObject *__pyx_pf_13cython_mylibc_16mylibpy_needlets_f2betajk_healpix_ha
  *     print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,pyjmax,nside,pyB))
  *     py_betajk=np.empty((pyjmax+1,Npix))
  *     for j in np.arange(pyjmax+1):             # <<<<<<<<<<<<<<
- *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside)
+ *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False
  *     return py_betajk
  */
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 327, __pyx_L1_error)
@@ -6188,7 +6191,7 @@ static PyObject *__pyx_pf_13cython_mylibc_16mylibpy_needlets_f2betajk_healpix_ha
     /* "cython_mylibc.pyx":328
  *     py_betajk=np.empty((pyjmax+1,Npix))
  *     for j in np.arange(pyjmax+1):
- *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside)             # <<<<<<<<<<<<<<
+ *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False             # <<<<<<<<<<<<<<
  *     return py_betajk
  * 
  */
@@ -6256,10 +6259,11 @@ static PyObject *__pyx_pf_13cython_mylibc_16mylibpy_needlets_f2betajk_healpix_ha
     __Pyx_GIVEREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 328, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_lmax, __pyx_v_pylmax) < 0) __PYX_ERR(0, 328, __pyx_L1_error)
     if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_nside, __pyx_v_nside) < 0) __PYX_ERR(0, 328, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_verbose, Py_False) < 0) __PYX_ERR(0, 328, __pyx_L1_error)
     __pyx_t_9 = __Pyx_PyObject_Call(__pyx_v_alm2map, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -6280,7 +6284,7 @@ static PyObject *__pyx_pf_13cython_mylibc_16mylibpy_needlets_f2betajk_healpix_ha
  *     print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,pyjmax,nside,pyB))
  *     py_betajk=np.empty((pyjmax+1,Npix))
  *     for j in np.arange(pyjmax+1):             # <<<<<<<<<<<<<<
- *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside)
+ *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False
  *     return py_betajk
  */
   }
@@ -6288,7 +6292,7 @@ static PyObject *__pyx_pf_13cython_mylibc_16mylibpy_needlets_f2betajk_healpix_ha
 
   /* "cython_mylibc.pyx":329
  *     for j in np.arange(pyjmax+1):
- *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside)
+ *         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False
  *     return py_betajk             # <<<<<<<<<<<<<<
  * 
  * 
@@ -6981,7 +6985,7 @@ static PyObject *__pyx_pf_13cython_mylibc_18mylibpy_needlets_f2betajk_accres_hea
  *         jlmax  = min( j_B2l_upperbound(pyB, j), pylmax )
  *         print( "jnside = {:d}, jlmax = {:d}".format(jnside, jlmax) )             # <<<<<<<<<<<<<<
  *         py_betajk.append( np.empty(12*jnside**2) )
- *         alm = map2alm(Map,lmax=jlmax)
+ *         alm = map2alm(Map,lmax=jlmax, verbose=False) #BIANCA verbose=False
  */
     __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_jnside_d_jlmax_d, __pyx_n_s_format); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 370, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
@@ -7037,8 +7041,8 @@ static PyObject *__pyx_pf_13cython_mylibc_18mylibpy_needlets_f2betajk_accres_hea
  *         jlmax  = min( j_B2l_upperbound(pyB, j), pylmax )
  *         print( "jnside = {:d}, jlmax = {:d}".format(jnside, jlmax) )
  *         py_betajk.append( np.empty(12*jnside**2) )             # <<<<<<<<<<<<<<
- *         alm = map2alm(Map,lmax=jlmax)
- *         py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside )
+ *         alm = map2alm(Map,lmax=jlmax, verbose=False) #BIANCA verbose=False
+ *         py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside, verbose=False ) #BIANCA verbose=False
  */
     __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 371, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
@@ -7072,8 +7076,8 @@ static PyObject *__pyx_pf_13cython_mylibc_18mylibpy_needlets_f2betajk_accres_hea
     /* "cython_mylibc.pyx":372
  *         print( "jnside = {:d}, jlmax = {:d}".format(jnside, jlmax) )
  *         py_betajk.append( np.empty(12*jnside**2) )
- *         alm = map2alm(Map,lmax=jlmax)             # <<<<<<<<<<<<<<
- *         py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside )
+ *         alm = map2alm(Map,lmax=jlmax, verbose=False) #BIANCA verbose=False             # <<<<<<<<<<<<<<
+ *         py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside, verbose=False ) #BIANCA verbose=False
  *     return py_betajk
  */
     __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 372, __pyx_L1_error)
@@ -7081,9 +7085,10 @@ static PyObject *__pyx_pf_13cython_mylibc_18mylibpy_needlets_f2betajk_accres_hea
     __Pyx_INCREF(((PyObject *)__pyx_v_Map));
     __Pyx_GIVEREF(((PyObject *)__pyx_v_Map));
     PyTuple_SET_ITEM(__pyx_t_3, 0, ((PyObject *)__pyx_v_Map));
-    __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 372, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 372, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_lmax, __pyx_v_jlmax) < 0) __PYX_ERR(0, 372, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_verbose, Py_False) < 0) __PYX_ERR(0, 372, __pyx_L1_error)
     __pyx_t_1 = __Pyx_PyObject_Call(__pyx_v_map2alm, __pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -7093,8 +7098,8 @@ static PyObject *__pyx_pf_13cython_mylibc_18mylibpy_needlets_f2betajk_accres_hea
 
     /* "cython_mylibc.pyx":373
  *         py_betajk.append( np.empty(12*jnside**2) )
- *         alm = map2alm(Map,lmax=jlmax)
- *         py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside )             # <<<<<<<<<<<<<<
+ *         alm = map2alm(Map,lmax=jlmax, verbose=False) #BIANCA verbose=False
+ *         py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside, verbose=False ) #BIANCA verbose=False             # <<<<<<<<<<<<<<
  *     return py_betajk
  * 
  */
@@ -7167,10 +7172,11 @@ static PyObject *__pyx_pf_13cython_mylibc_18mylibpy_needlets_f2betajk_accres_hea
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_lmax, __pyx_v_jlmax) < 0) __PYX_ERR(0, 373, __pyx_L1_error)
     if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_nside, __pyx_v_jnside) < 0) __PYX_ERR(0, 373, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_verbose, Py_False) < 0) __PYX_ERR(0, 373, __pyx_L1_error)
     __pyx_t_9 = __Pyx_PyObject_Call(__pyx_v_alm2map, __pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 373, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -7192,8 +7198,8 @@ static PyObject *__pyx_pf_13cython_mylibc_18mylibpy_needlets_f2betajk_accres_hea
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "cython_mylibc.pyx":374
- *         alm = map2alm(Map,lmax=jlmax)
- *         py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside )
+ *         alm = map2alm(Map,lmax=jlmax, verbose=False) #BIANCA verbose=False
+ *         py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside, verbose=False ) #BIANCA verbose=False
  *     return py_betajk             # <<<<<<<<<<<<<<
  * 
  * 
@@ -23674,6 +23680,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
   {&__pyx_n_s_update, __pyx_k_update, sizeof(__pyx_k_update), 0, 0, 1, 1},
+  {&__pyx_n_s_verbose, __pyx_k_verbose, sizeof(__pyx_k_verbose), 0, 0, 1, 1},
   {&__pyx_n_s_xmax, __pyx_k_xmax, sizeof(__pyx_k_xmax), 0, 0, 1, 1},
   {&__pyx_n_s_zeros, __pyx_k_zeros, sizeof(__pyx_k_zeros), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}

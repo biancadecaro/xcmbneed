@@ -123,13 +123,15 @@ class HarmAnalysis(Master):
                                         fix_field = hp.read_map(fix_field)
                                 assert( hp.isnpixok(len(fix_field)) )                           
 
-                        dim = (nsim) / nproc
+                        dim = int((nsim) / nproc)
+                        print("dim=",dim)
+
                         if nproc > 1:
                                 if myid < (nsim) % nproc:
                                         dim += 1
-                        #self.ell_binned = Binner(bin_edges=None, lmin=self.lmin, lmax=self.lmax, delta_ell=self.delta_ell, flat=self.flattening)
+                        #self.ell_binned = Binner(bin_edges=None, lmin=self.lmin, lmax=self.lmax, delta_ell=self.delta_ell, flat=self.flattening)#bianca
                         cl_sims = np.zeros((dim,self.ell_binned.size))
-
+                       
                         # Loop over simulations
                         k = 0
                         if (field2 is None) and (fix_field is None): # Field1 x Field1
@@ -143,6 +145,7 @@ class HarmAnalysis(Master):
                                         m2 = self.Sims.GetSimField(field2, n)
                                         m1 *= self.mask
                                         m2 *= self.mask
+                                        print(np.sum(self.mask))
                                         m1 = hp.remove_dipole(m1, verbose=False)
                                         m2 = hp.remove_dipole(m2, verbose=False)
                                         inpainting = False #bianca 3/3/2022
@@ -150,10 +153,12 @@ class HarmAnalysis(Master):
                                                 m1 = inp.diffusive_inpaint2(m1, self.mask, niter)
                                                 m2 = inp.diffusive_inpaint2(m2, self.mask, niter)
                                                 #hp.mollview(m1, norm='hist'); hp.mollview(m2, norm='hist'); plt.show()
+                                                
                                                 cl_ = hp.anafast(m1, map2=m2, lmax=self.lmax)
                                                 cl_sims[k,:] = self.bin_spectra(cl_)/self.fsky
                                         else:
                                                 cl_sims[k,:] = self.get_spectra(m1, map2=m2)
+                                                
                                         k += 1
                         elif (field2 is None) and (fix_field is not None): # Field1 x Fix_field (Null-test)
                                 for n in range(myid, nsim, nproc): 
@@ -285,7 +290,7 @@ class NeedAnalysis(object):
                 print("==>lmax={:d}, jmax={:d}, nside={:d}, B={:e}".format(self.lmax,self.jmax,self.Sims.SimPars['nside'],self.B)) 
                 self.b_values = pippo.mylibpy_needlets_std_init_b_values(self.B, self.jmax, self.lmax)
                 #print(self.b_values, self.b_values.shape)
-                np.savetxt('./b_values_B=%1.2f' %self.B+'.txt',self.b_values)
+                #np.savetxt('./b_values_B=%1.2f' %self.B+'.txt',self.b_values)
                 pippo.mylibpy_needlets_check_windows(self.jmax, self.lmax, self.b_values)
                 self.jvec = np.arange(self.jmax+1)
                 print("...done...")
@@ -358,6 +363,7 @@ class NeedAnalysis(object):
                 if mask is not None:
                         fsky  = np.mean(mask) 
                         map1 *= mask 
+                        print(f'fsky mappa 1={fsky:0.2f}')
 
                 map1 = hp.remove_dipole(map1, verbose=False)#.compressed()
                 
@@ -371,15 +377,16 @@ class NeedAnalysis(object):
                 else: # Cross-
                         if mask is not None:
                                map2 *= mask 
+                               print(f'fsky mappa 2={np.mean(mask) :0.2f}')
                         map2 = hp.remove_dipole(map2, verbose=False)#.compressed()
                         if inpainting:
                                map2 = inp.diffusive_inpaint2(map2, mask, niter)
                         betajk2 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map2, self.B, self.jmax, self.lmax)
 
-                        for j in range(self.jmax):
-                                hp.write_map(f'./maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'T', betajk1[j,:], overwrite= True)     
-                                hp.write_map(f'./maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'G', betajk2[j,:], overwrite= True)     
-                        return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)/fsky
+                        #for j in range(self.jmax):
+                        #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'T', betajk1[j,:], overwrite= True)     
+                        #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'G', betajk2[j,:], overwrite= True)     
+                        return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)/fsky #!! WARN /fsky, result unbiased
 
         def GetBetajkSims(self, field, nsim, mask=None, fname=None):
                 """
@@ -480,7 +487,7 @@ class NeedAnalysis(object):
                 betaj_sims : array
                         array with ((nsim, jmax+1)) shape containing needlet coefficients 
                 """
-                print('sono dentro GetBetajSimsFromMaps')
+                #print('sono dentro GetBetajSimsFromMaps')
                 try:
                         from mpi4py import MPI
                         comm = MPI.COMM_WORLD
@@ -527,7 +534,7 @@ class NeedAnalysis(object):
                                 for n in range(myid, nsim, nproc): 
                                         m1    = self.Sims.GetSimField(field1, n)
                                         m2    = self.Sims.GetSimField(field2, n)
-                                        print('sto calcolando betaj')
+                                        #print('sto calcolando betaj')
                                         betaj = self.Map2Betaj(m1,k, map2=m2, mask=mask, noise=noise, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
                                         betaj_sims[k, :] = betaj
                                         k += 1
@@ -539,10 +546,9 @@ class NeedAnalysis(object):
                                         k += 1
                         print(k, dim)
 
-                        assert (k == int(dim)) #Bianca
+                        #assert (k == int(dim)) #Bianca
 
                         if nproc > 1:
-                                print('qua ci entro?')
                                 betaj_sims_tot = comm.gather(betaj_sims, root=0)
                                 if myid == 0:
                                     betaj_sims_tot = np.vstack((_sims for _sims in betaj_sims_tot)) 
@@ -550,16 +556,13 @@ class NeedAnalysis(object):
                                 betaj_sims_tot = betaj_sims
 
                         if myid == 0: 
-                                print('e qua?')
                                 if fname is not None:
                                         print("...evaluation terminated...")
                                         print("...saving to output " + self.OutDir + fname + "...")
                                         np.savetxt(self.OutDir + fname, betaj_sims_tot)
                         if nproc > 1:
-                                print('e qua ci entro?')
                                 comm.Barrier() 
-                                print('e da qui ci esco?')
-                print('esco da questa funzione?')
+                #print('esco da questa funzione?')
                 return betaj_sims_tot
 
         def GetCovMatrixFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, fname_sims=None):
@@ -608,8 +611,7 @@ class NeedAnalysis(object):
 
                 betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask=None, fname=fname_sims)
                 cov_betaj  = np.cov(betaj_sims.T) 
-                print(betaj_sims.T)
-                print('fin qui ci sono')
+                #print('fin qui ci sono')
                    
                 if fname is not None:
                         print("...saving Covariance Matrix to output " + self.OutDir + fname + "...")

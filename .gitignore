@@ -13,7 +13,29 @@ example
 
 main.bib
 
+src/sims/*
 src/maps_beta
-src/sims/Needlet
-src/mask/HFI_Mask_GalPlane-apo0_2048_R2.00.fits
+src/sims/Needlet/old_sims*
+src/sims/Needlet/Planck/old_sims
+src/sims/Cl
+src/betajk1*
+src/output_needlet_TG_OmL/wrong_grid
+src/spectra/old_grid
+src/spectra/CAMBSpectra_Om*
+src/sims/Needlet/sims_*
+src/sims/Needlet/Pietrobon*
+
 src/noise/COM_CompMap_CMB-commrul_2048_R1.00.fits
+src/mask/COM_Mask_CMB-common-Mask-Int_2048_R3.00.fits
+src/mask/HFI_Mask_GalPlane-apo0_2048_R2.00.fits
+
+/src/comparison_theoretical_simulated_spectra/EUCLID
+/src/cls_from_maps/EUCLID
+
+/src/output_needlet_TG/EUCLID
+/src/output_Cl_TG/EUCLID
+
+src/TG_needlet_EUCLID_*
+src/TG_cl_EUCLID.py
+src/TG_EUCLID_needmaster.py
+src/from_Marina_sims_2_ours.py

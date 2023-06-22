@@ -289,7 +289,7 @@ def mylibpy_needlets_f2betajk_j_healpix_harmonic(object[cDOUBLE, ndim=1] Map,obj
     lmax=len(py_b_values[0,:])-1
     #Npix=12*nside**2
     #print("f2betajk_j: lmax={:d},nside={:d},j={:d}".format(lmax,nside,pyj))
-    return alm2map(almxfl(map2alm(Map,lmax=lmax),py_b_values[pyj,:]),lmax=lmax,nside=nside)
+    return alm2map(almxfl(map2alm(Map,lmax=lmax),py_b_values[pyj,:]),lmax=lmax,nside=nside, verbose=False) #BIANCA verbose = false
 
 
 
@@ -325,7 +325,7 @@ def mylibpy_needlets_f2betajk_healpix_harmonic(object[cDOUBLE, ndim=1] Map,pyB,p
     print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,pyjmax,nside,pyB)) 
     py_betajk=np.empty((pyjmax+1,Npix))
     for j in np.arange(pyjmax+1):
-        py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside)
+        py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False
     return py_betajk
 
 
@@ -369,8 +369,8 @@ def mylibpy_needlets_f2betajk_accres_healpix_harmonic(object[cDOUBLE, ndim=1] Ma
         jlmax  = min( j_B2l_upperbound(pyB, j), pylmax )
         print( "jnside = {:d}, jlmax = {:d}".format(jnside, jlmax) )
         py_betajk.append( np.empty(12*jnside**2) )
-        alm = map2alm(Map,lmax=jlmax)
-        py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside )
+        alm = map2alm(Map,lmax=jlmax, verbose=False) #BIANCA verbose=False
+        py_betajk[j][:] = alm2map( almxfl(alm, b_values[j, :jlmax + 1 ]), lmax = jlmax, nside = jnside, verbose=False ) #BIANCA verbose=False
     return py_betajk
 
 
