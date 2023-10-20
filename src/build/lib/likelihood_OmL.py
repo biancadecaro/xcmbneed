@@ -113,7 +113,7 @@ plt.savefig('parameter_estimation/chi_squared_mean_'+str(len(OmL))+'_theoretical
 
 
 #print(np.median(posterior_distr), mode(posterior_distr)[0][0] ,np.mean(posterior_distr), OmL[index] )
-
+filename = f'Posterior_OmL_{len(OmL)}_mean_sim_best-fit_theoretical_OmL'
 
 #Confronto distribuzione vecchia e nuova
 
@@ -132,33 +132,33 @@ ax = fig.add_subplot(1, 1, 1)
 ax.set_title(r'Probability distribution for $\Omega_{\Lambda}$ , grid = '+str(len(OmL))+' points')
 ax.set_xlabel(r'$\Omega_{\Lambda}$')
 
-#textstr = '\n'.join((
-#    r'$\Omega_{\Lambda}=%.2f$' % (OmL[index], ),
-#    r'$-=%.2f$' % (percentile[0], ),
-#    r'$+=%.2f$' % (percentile[2], )))
-# 
-#ax.text(0.3, 3, textstr, 
-#    verticalalignment='top')#, bbox=props)
+textstr = '\n'.join((
+    r'$\Omega_{\Lambda}=%.2f$' % (OmL[index], ),
+    r'$-=%.2f$' % (percentile[0], ),
+    r'$+=%.2f$' % (percentile[2], )))
+ 
+ax.text(0.3, 3, textstr, 
+    verticalalignment='top')#, bbox=props)
 
 
 binwidth = (OmL[-1]-OmL[0])/(len(OmL)-1)
 binrange = [OmL[0]+binwidth/2, OmL[-1]+binwidth/2]
 sns.histplot(posterior_distr, stat='density',binwidth=binwidth,binrange=binrange,element='step',fill=True, ax=ax)
-sns.histplot(posterior_distr_old, stat='density',binwidth=binwidth,binrange=binrange,element='step',fill=True, color='r',ax=ax)
+#sns.histplot(posterior_distr_old, stat='density',binwidth=binwidth,binrange=binrange,element='step',fill=True, color='r',ax=ax)
 
 ax.set_xlim(binrange[0], binrange[1])
 ax.axvline(percentile[0],color='b')
-ax.axvline(percentile_old[0],color='r')
+#ax.axvline(percentile_old[0],color='r')
 
 #ax.axvline(mean,color='r')
 ax.axvline(percentile[2],color='b')
-ax.axvline(percentile_old[2],color='r')
+#ax.axvline(percentile_old[2],color='r')
 ax.axvline(OmL[index], color = 'b', linestyle='-')
-ax.axvline(OmL[index_old], color = 'r', linestyle='-',label='old')
+#ax.axvline(OmL[index_old], color = 'r', linestyle='-',label='old')
 ax.axvline(0.6847,color ='k',linestyle='-.', label = 'Planck 2018')
 
 plt.legend(loc='best')
 plt.tight_layout()
 
-plt.savefig('parameter_estimation/' +filename +'.png')
+plt.savefig('parameter_estimation/Posterior_OmL/' +filename +'.png')
 

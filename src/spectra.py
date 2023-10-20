@@ -9,7 +9,7 @@ class XCSpectraFile(object):
            ncol = 5 -> l, clkg, clgg, clkk, nlkk
            ncol = 8 -> l, clkg, clkmu, clgg, clgmu, clmumu, clkk, nlkk
     """
-    def __init__(self, clfname, WantTG,  lmin=None, lmax=None, b=1, alpha=1 ): #BIanca ha agiunto il noise
+    def __init__(self, clfname, WantTG,  lmin=None, lmax=None, b=1, alpha=1 ): 
         """ load Cls.
             ! All spectra must be passed from lmin = 0 !
              * clfname          = file name to load from.
@@ -183,6 +183,25 @@ class NeedletTheory(object):
         self.npoints = npoints
         self.norm = self.get_normalization()
 
+    def ell_binning(self, jmax, lmax, ell):
+        """
+        Returns the binning scheme in  multipole space
+        """
+        assert(np.floor(self.B**(jmax+1)) <= ell.size-1) 
+        ellj = []
+        for j in range(jmax+1):
+            lmin = np.floor(self.B**(j-1))
+            lmax = np.floor(self.B**(j+1))
+            ell1  = np.arange(lmin, lmax+1, dtype=int)
+            ellj.append(ell1)
+        return np.asarray(ellj, dtype=object)
+    
+    def get_B_parameter(self):
+        """
+        Returns the D parameter for needlets
+        """
+        return np.power(self.lmax, 1./self.jmax)
+
     def f_need(self, t):
         """
         Standard needlets f function
@@ -252,11 +271,12 @@ class NeedletTheory(object):
  
         betaj = np.zeros(jmax+1)
         for j in range(jmax+1):
-            lmin = np.floor(self.B**(j-1))
+            lmin = np.ceil(self.B**(j-1))
             lmax = np.floor(self.B**(j+1))
             ell  = np.arange(lmin, lmax+1, dtype=np.int)
             #print(lmin, lmax, j)
             b2   = self.b_need(ell/self.B**j)*self.b_need(ell/self.B**j)
+            #print(b2)
             betaj[j] = np.sum(b2*(2.*ell+1.)/4./np.pi*cl[ell])
         return betaj
     
@@ -352,7 +372,7 @@ class NeedletTheory(object):
             b2 = self.b_need(ell/self.B**j)**2
             b2[np.isnan(b2)] = 0.
             bjl[j,:] = b2*(2*ell+1.) 
-        return np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
+        return (bjl*np.dot(Mll, cl[:lmax+1])).sum(axis=1)/(4*np.pi)#np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
     
     def sigmaJ(self, cl, wl, jmax, lmax):
         """

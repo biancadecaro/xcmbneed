@@ -100,7 +100,22 @@ def Compute_beta_grid_theoretical(params, dir,  B,lmax, jmax):
         np.savetxt(dir['out_dir'][i]+f'beta_TS_galS_theoretical_OmL{params[i]}_B{B}.dat', betatg[i])
         np.savetxt(dir['out_dir'][i]+f'variance_TS_galS_theoretical_OmL{params[i]}_B{B}.dat', delta[i])
 
-    return np.array(betatg), np.array(delta)
+def Compute_gamma_grid_theoretical(params,wl, dir,  B,lmax, jmax):
+    xcspectra       = [spectra.XCSpectraFile(clfname= str(dir['fname_xcspectra'][xc]),  WantTG = True)  for xc in range(len(params))]
+    print(xcspectra[0].cltt.shape)
+    gamma = np.zeros((len(params), jmax+1))
+
+
+    need_theory=spectra.NeedletTheory(B)
+        # Needlet Analysis
+        #myanalysis.append(analysis.NeedAnalysis(jmax, lmax, dir['out_dir'][xc], simulations[xc]))
+    for xc in range(len(params)):
+        gamma[xc]    = need_theory.gammaJ(xcspectra[xc].cltg, wl, jmax, lmax)
+        
+    for i in range(len(params)):
+        np.savetxt(dir['out_dir'][i]+f'beta_TS_galS_theoretical_OmL{params[i]}_B{B}.dat', gamma[i])
+
+    return np.array(gamma)
 
 def Make_plot(betaj_sims_TS_galS, params, jmax, myanalysis, dir, nside):
     print(dir['fname_xcspectra'])

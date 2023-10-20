@@ -322,7 +322,7 @@ def mylibpy_needlets_f2betajk_healpix_harmonic(object[cDOUBLE, ndim=1] Map,pyB,p
     Npix=12*nside**2
     b_values=mylibpy_needlets_std_init_b_values(pyB,pyjmax,pylmax)
     alm=map2alm(Map,lmax=pylmax)
-    print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,pyjmax,nside,pyB)) 
+    #print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,pyjmax,nside,pyB)) 
     py_betajk=np.empty((pyjmax+1,Npix))
     for j in np.arange(pyjmax+1):
         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False
@@ -361,7 +361,7 @@ def mylibpy_needlets_f2betajk_accres_healpix_harmonic(object[cDOUBLE, ndim=1] Ma
     Npix = 12*nside**2
     b_values = mylibpy_needlets_std_init_b_values(pyB,pyjmax,pylmax)
     #alm = map2alm(Map,lmax=pylmax)
-    print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax, pyjmax, nside, pyB))
+    #print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax, pyjmax, nside, pyB))
     #py_betajk=np.empty((pyjmax+1,Npix))
     py_betajk = [ np.zeros(12) ] # j = 0 - Monopole must be subtracted!
     for j in np.arange(1,pyjmax + 1):
@@ -403,7 +403,7 @@ def mylibpy_needlets_betajk2f_healpix_harmonic(object[cDOUBLE, ndim=2] betajk,py
     nside=get_nside(betajk[0,:])
     Npix=12*nside**2
     b_values=mylibpy_needlets_std_init_b_values(pyB,jmax,pylmax)
-    print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,jmax,nside,pyB))
+    #print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,jmax,nside,pyB))
     Map=np.zeros(Npix)
     for j in np.arange(jmax+1):
         print("j=",j)
@@ -439,7 +439,7 @@ def mylibpy_needlets_betajk2f_accres_healpix_harmonic( betajk, pyB, pylmax):
     nside = get_nside( betajk[-1][:] )
     Npix = 12*nside**2
     b_values = mylibpy_needlets_std_init_b_values(pyB, jmax, pylmax)
-    print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,jmax,nside,pyB))
+    #print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,jmax,nside,pyB))
     Map=np.zeros(Npix)
     for j in np.arange(1,jmax + 1):
         print("j=",j)

@@ -52,7 +52,7 @@ def delta_chi2_grid(beta_fid, beta_grid,cov, jmax, params):
     for i in range(len(params)):
         delta[i] = np.subtract(beta_fid, beta_grid[i])
         #print(cov[i].shape, delta[i].shape)
-        chi2[i] = delta_chi2(delta[i], cov=cov[i])
+        chi2[i] = delta_chi2(delta[i], cov=cov)
 
     return chi2
 

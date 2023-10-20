@@ -67,8 +67,8 @@ class KGsimulations(object):
 					#Correlated signal temperature and density maps
 					TS_map, galS_map = utils.GetCorrMaps(self.XCSpectraFile.cltg, self.XCSpectraFile.cltt, self.XCSpectraFile.clg1g1, self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
 					 #continuare qua e capire se mettere anche noise e total maps (ma forse per ora no perche non ho un rumore)
-
-					galN_map = utils.GetGalNoiseMap(self.SimPars['nside'], self.SimPars['ngal'], dim=self.SimPars['ngal_dim'], delta=True)
+					
+					galN_map = utils.GetGalNoiseMap(self.SimPars['nside'], self.SimPars['ngal'], dim=self.SimPars['ngal_dim'], delta=True) #! questa mappa non serve a niente
 					
 					# Total maps
 					galT_map = utils.Counts2Delta(utils.GetCountsTot(galS_map, self.SimPars['ngal'], dim=self.SimPars['ngal_dim']))
