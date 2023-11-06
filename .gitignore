@@ -13,7 +13,6 @@ example
 
 main.bib
 
-src/sims
 src/maps_beta
 src/sims/Needlet/old_sims*
 src/sims/Needlet/Planck/old_sims
