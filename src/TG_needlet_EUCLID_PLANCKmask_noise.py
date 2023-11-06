@@ -328,7 +328,7 @@ print(f'diff cov mask={diff_cov_mask}, diff cov mean={diff_cov_mean_mask}')
 ##NEEDLETS
 fig = plt.figure(figsize=(17,10))
 
-plt.suptitle(r'Planck Mask $D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+plt.suptitle(r'Planck Mask NEEDLETS $D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~f_{sky} = $'+str(fsky))
 
 ax = fig.add_subplot(1, 1, 1)
 
@@ -341,7 +341,7 @@ plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
 ax.set_xlabel(r'$j$')
 #ax.set_ylabel(r'% $(\Delta \Gamma)^2_{\mathrm{sims}}/(\Delta \Gamma)^2_{\mathrm{analytic}}$ - 1')
-ax.set_ylabel(r'src/TG_needlet_mask_noise_PLANCK.py% diag(sim cov)/diag(analyt cov)-1')
+ax.set_ylabel(r'diag(sim cov)/diag(analyt cov)-1')
 fig.tight_layout()
 plt.savefig(out_dir+f'diff_cov_gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
 
@@ -392,7 +392,7 @@ cov_pcl= cov_pseudo_cl(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, w
 
 fig = plt.figure(figsize=(17,10))
 
-plt.suptitle(r'Planck Mask $ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+plt.suptitle(r'Planck Mask PCL $ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~f_{sky} = $'+str(fsky))
 
 ax = fig.add_subplot(1, 1, 1)
 

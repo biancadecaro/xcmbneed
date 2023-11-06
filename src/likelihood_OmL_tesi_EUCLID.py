@@ -7,7 +7,7 @@ import seaborn as sns
 sns.set()
 sns.set(style = 'white')
 sns.set_palette('husl')
-
+#plt.style.use("dark_background")
 import matplotlib as mpl
 mpl.rc('xtick', direction='in', top=True, bottom = True)
 mpl.rc('ytick', direction='in', right=True, left = True)

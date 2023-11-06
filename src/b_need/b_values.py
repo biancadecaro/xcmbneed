@@ -1,5 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set()
+
+sns.set(style = 'white')
+sns.set_palette('husl')
+
+import matplotlib as mpl
+mpl.rc('xtick', direction='in', top=True, bottom = True)
+mpl.rc('ytick', direction='in', right=True, left = True)
+plt.style.use("dark_background")
+
+
 from matplotlib import rc, rcParams
 plt.rcParams['axes.linewidth']  = 5.
 plt.rcParams['axes.labelsize']  =30
@@ -23,7 +35,7 @@ plt.rcParams['font.size'] = 40
 plt.rcParams['lines.linewidth']  = 5.
 
 
-b_need_1p5 = np.loadtxt('/ehome/bdecaro/xcmbneed/src/b_values_B=1.50.txt')
+b_need_1p5 = np.loadtxt('b_values_B=1.50.txt')
 
 print(b_need_1p5, b_need_1p5.shape[0]) #dovrebbe essere j righe e l colonne
 
@@ -46,7 +58,7 @@ plt.tight_layout()
 #plt.savefig('b_need_D1.47_log.png')
 #plt.savefig('b_need_D1.47_j6.png')
 
-b_need_1p7 = np.loadtxt('/ehome/bdecaro/xcmbneed/src/b_values_B=1.70.txt')
+b_need_1p7 = np.loadtxt('b_values_B=1.70.txt')
 
 print(b_need_1p7, b_need_1p7.shape[0]) #dovrebbe essere j righe e l colonne
 
@@ -69,7 +81,7 @@ plt.tight_layout()
 #plt.savefig('b_need_D1.70_log.png')
 #plt.savefig('b_need_D1.70_j6.png')
 
-b_need_1p83 = np.loadtxt('/ehome/bdecaro/xcmbneed/src/b_values_B=1.83.txt')
+b_need_1p83 = np.loadtxt('b_values_B=1.83.txt')
 
 print(b_need_1p83, b_need_1p83.shape[0]) #dovrebbe essere j righe e l colonne
 
@@ -89,11 +101,11 @@ ax1.set_title('D = 1.83')#, fontsize = 25)
 plt.tight_layout()
 #plt.plot(b_need[6])
 
-plt.savefig('b_need_D1.83_log.png')
+plt.savefig('b_need_D1.83_log_dark_bg.png')
 #plt.savefig('b_need_D1.83_j6.png')
 
 
-b_need_1p95 = np.loadtxt('/ehome/bdecaro/xcmbneed/src/b_values_B=1.95.txt')
+b_need_1p95 = np.loadtxt('b_values_B=1.95.txt')
 
 print(b_need_1p95, b_need_1p95.shape[0]) #dovrebbe essere j righe e l colonne
 
@@ -113,5 +125,5 @@ ax1.set_title('D = 1.95')#, fontsize = 25)
 plt.tight_layout()
 #plt.plot(b_need[6])
 
-plt.savefig('b_need_D1.95_log.png')
+plt.savefig('b_need_D1.95_log_dark_bg.png')
 #plt.savefig('b_need_D1.95_j6.png')
