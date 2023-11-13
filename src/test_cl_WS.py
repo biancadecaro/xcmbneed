@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
 
 import matplotlib.pyplot as plt
 from matplotlib import rc, rcParams
@@ -52,7 +52,7 @@ mask = utils.GetGalMask(simparams['nside'], lat=20.)
 fsky = np.mean(mask)
 
 # Loading theory spectra
-xcspectra = spectra.XCSpectraFile(fname_xcspectra, b=3)
+xcspectra = spectra.XCSpectraFile(fname_xcspectra, b=1)
 
 # Simulations class
 simulations = sims.KGsimulations(xcspectra, sims_dir, simparams)
@@ -140,7 +140,7 @@ ax  = fig.add_subplot(1, 2, 1)
 
 # embed()
 
-for i in xrange(cl_sims_kappaT_deltaT.shape[0]):
+for i in range(cl_sims_kappaT_deltaT.shape[0]):
 	if i != 0:
 		ax.plot(lbins, cl_sims_kappaT_deltaT[i,:], color='grey', alpha=0.05)
 	else:

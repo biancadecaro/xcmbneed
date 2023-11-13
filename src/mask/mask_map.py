@@ -31,6 +31,10 @@ mask_map_euclid_fsky0p35_128 = hp.read_map('EUCLID/mask_rsd2022g-wide-footprint-
 #mask_map_99_u = hp.ud_grade(mask_map_99, nside)
 
 mask_map_planck_comm_128_u = hp.ud_grade(mask_map_planck_comm_2048, nside)
+<<<<<<< HEAD
+=======
+mask_map_planck_comm_256_u = hp.ud_grade(mask_map_planck_comm_2048, 256)
+>>>>>>> euclid_implementation
 
 #hp.write_map(f'mask20_gal_nside={nside}.fits', mask_map_20_u )
 #hp.write_map(f'mask40_gal_nside={nside}.fits', mask_map_40_u )
@@ -41,9 +45,19 @@ mask_map_planck_comm_128_u = hp.ud_grade(mask_map_planck_comm_2048, nside)
 #hp.write_map(f'mask97_gal_nside={nside}.fits', mask_map_97_u )
 #hp.write_map(f'mask99_gal_nside={nside}.fits', mask_map_99_u )
 
+<<<<<<< HEAD
 mask_new = mask_map_planck_comm_128_u*mask_map_euclid_fsky0p35_128
 mask_new[np.where(mask_new>=0.5 )]=1
 mask_new[np.where(mask_new<0.5 )]=0
 
 hp.write_map(f'mask_planck_comm_2018_nside={nside}.fits', mask_map_planck_comm_128_u, overwrite=True )
 hp.write_map(f'EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits', mask_new )
+=======
+#mask_new = mask_map_planck_comm_128_u*mask_map_euclid_fsky0p35_128
+#mask_new[np.where(mask_new>=0.5 )]=1
+#mask_new[np.where(mask_new<0.5 )]=0
+
+hp.write_map(f'mask_planck_comm_2018_nside={nside}.fits', mask_map_planck_comm_128_u, overwrite=True )
+hp.write_map(f'mask_planck_comm_2018_nside={256}.fits', mask_map_planck_comm_256_u, overwrite=True )
+#hp.write_map(f'EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits', mask_new )
+>>>>>>> euclid_implementation

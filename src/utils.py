@@ -114,7 +114,7 @@ def GetCorrMaps(clxy, clxx, clyy, nside, lmax=None, pixwin=True):
     map_xx = hp.sphtfunc.alm2map(alm_xx, nside, pixwin=pixwin, lmax=lmax, verbose=False)
     map_yy = hp.sphtfunc.alm2map(alm_yy, nside, pixwin=pixwin, lmax=lmax, verbose=False)
 
-    return map_xx, map_yy;
+    return map_xx, map_yy
 
 def Counts2Delta(counts, mask=None):
     """
@@ -136,7 +136,7 @@ def Counts2Delta(counts, mask=None):
     
     return delta
 
-def GetNlgg(counts, mask=None, lmax=None, return_ngal=False):
+def GetNlgg(counts, dim,mask=None, lmax=None, return_ngal=False):
     """
     Returns galaxy shot-noise spectra given a number counts Healpix map. 
     If return_ngal is True, it returns also the galaxy density in gal/ster.
@@ -157,12 +157,15 @@ def GetNlgg(counts, mask=None, lmax=None, return_ngal=False):
         fsky = 1.
 
     N_tot = np.sum(counts * mask)
-    ngal  = N_tot / 4. / np.pi / fsky
+    if dim=='ster':
+        ngal  = N_tot / fsky
+    else:
+        ngal  = N_tot / 4. / np.pi / fsky
 
     if return_ngal:
         return np.ones(lmax+1) / ngal, ngal
     else:
-        return np.ones(lmax+1) / ngal
+        return np.ones(lmax+1)/ ngal
 
 def GetCountsTot(delta, ngal, dim='pix'):
     """

@@ -69,5 +69,9 @@ ax.set_ylabel(r'$C_{\ell}^{TG}$',fontsize = 20)
 ax.legend(loc = 'best',frameon = True,fontsize=15)
 
 fig.tight_layout()
+<<<<<<< HEAD
 plt.savefig('prova_cls_analysis_ell_bin_planck_lmin0.png')
 
+=======
+plt.savefig('prova_cls_analysis_ell_bin_planck_lmin0.png')
+>>>>>>> euclid_implementation

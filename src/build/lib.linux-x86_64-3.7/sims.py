@@ -23,7 +23,7 @@ class KGsimulations(object):
 		if not os.path.exists(self.LibDir):
 			os.makedirs(self.LibDir)
 			
-	def Run(self, nsim, WantTG):
+	def Run(self, nsim, WantTG, EuclidSims=False):
 		"""
 		It generates nsim realizations of the CMB lensing and galaxy fields.
 		The outputs are *correlated* maps of Kappa and Delta, signal-only and
@@ -37,9 +37,14 @@ class KGsimulations(object):
 			myid, nproc = 0, 1
 
 		if WantTG == True:
-			nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/2
+			nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/4
 		else:
 			nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/6
+		
+		if EuclidSims == True:
+			print('... Euclid sims requested ...')
+			nsim_found = len(glob.glob(self.LibDir + "map_nbin1_NSIDE" + str(self.SimPars['nside']) + "_lmax*_*_*.fits"))/2
+		
 
 		print('nsim_found = ', nsim_found)
 
@@ -130,8 +135,13 @@ class KGsimulations(object):
 		fname = self.LibDir + "sim_" + ('%04d' % idx) + "_" + field + "_" + ('%04d' % self.SimPars['nside']) + ".fits"
 		return hp.read_map(fname, verbose=False)
 	
+<<<<<<< HEAD
 	def GetSimField_Marina(self, field, idx,lmax):
 		fname = self.LibDir + "map_nbin1_NSIDE" + ('%04d' % self.SimPars['nside']) + "lmax_" + ('%04d' % lmax)  + "_" + field + "_"  + ('%04d' % idx)+".fits"#map_nbin1_NSIDE128_lmax256_T_00327.fits
+=======
+	def GetSimField_Euclid(self, field, idx,lmax):
+		fname = self.LibDir + "map_nbin1_NSIDE" + str(self.SimPars['nside']) + "_lmax" + str(lmax)  + "_" + ('%05d' % (idx+1))+ "_" + field + ".fits"#map_nbin1_NSIDE128_lmax256_00327_T.fits
+>>>>>>> euclid_implementation
 		return hp.read_map(fname, verbose=False)
 	
 	def GetMeanField(self, field, idx):

@@ -9,11 +9,13 @@ import cython_mylibc as pippo
 
 import utils
 from master import Master
+#from master_needlets import Master_needlets
 
 from IPython import embed
 
 #from src.master import Binner
 from master import Binner
+
 class HarmAnalysis(Master):
         """
         Class to perform spherical harmonic analysis (based on MASTER algorithm). 
@@ -266,12 +268,16 @@ class HarmAnalysis(Master):
                 return cov_cl,corr_cl
         
 
+#class NeedAnalysis(Master_needlets):
 class NeedAnalysis(object):
         """
         Class to perform needlet analysis (based on Alessandro Renzi's library). 
         @see arXiv:0707.0844    
         """     
-        def __init__(self, jmax, lmax, OutDir, Sims):
+        def __init__(self, jmax, lmax, OutDir, Sims, mask=None, flattening=None, 
+                                 pixwin=False, fwhm_smooth=None, fsky_approx=False):
+        #def __init__(self, jmax, lmin, lmax, OutDir, Sims, mask=None, flattening=None, 
+        
                 """
                 Parameters
                 ----------
@@ -284,11 +290,19 @@ class NeedAnalysis(object):
                 Sims : class
                         Simulations class 
                 """
-
+                if mask is not None:
+                        mask = np.asarray(mask)
+                else: 
+                        mask = np.ones(hp.nside2npix(Sims.SimPars['nside']))
+                
+                #super(NeedAnalysis, self).__init__(lmin, lmax, jmax, mask, flattening, pixwin, fwhm_smooth, fsky_approx)
+                
                 self.jmax   = jmax
                 self.lmax   = lmax
                 self.Sims   = Sims    
                 self.OutDir = OutDir  
+                #self.fsky_approx = fsky_approx
+                #print(f'fsky_approx = {fsky_approx}')
 
                 if not os.path.exists(self.OutDir):
                     os.makedirs(self.OutDir)
@@ -330,7 +344,7 @@ class NeedAnalysis(object):
 
                 return betaj
 
-        def Map2Betaj(self, map1,nsim, map2=None, mask=None, noise=0., inpainting=False, niter=2000, path_inpainting="python/inpainting.py"):
+        def Map2Betaj(self, map1,nsim, map2=None, mask=None, noise=0., fsky_approx=False, inpainting=False, niter=2000, path_inpainting="python/inpainting.py"):
                 """
                 Returns the needlet (auto- or cross-) power spectrum \beta_j given Healpix maps.
 
@@ -372,10 +386,23 @@ class NeedAnalysis(object):
                 
                 if mask is not None:
                         fsky  = np.mean(mask) 
+<<<<<<< HEAD
                         map1 *= mask 
                         print(f'fsky mappa 1={fsky:0.2f}')
 
                 map1 = hp.remove_dipole(map1, verbose=False)#.compressed()
+=======
+                        #map1 *= mask 
+                        bad_v = np.where(mask==0)
+                        nside = hp.get_nside(map1)
+                        print(bad_v[0].shape[0], hp.nside2npix(nside)-np.sum(mask))
+                        print(f'fsky mappa 1={fsky:0.2f}')
+                        map1[bad_v]=hp.UNSEEN
+                        #map1 = hp.remove_dipole(map1, verbose=False) #BIANCA 8/9/2023
+                        #map1[bad_v]=0.0
+                else:
+                        map1 = hp.remove_dipole(map1, verbose=False)#.compressed() # BIANCA ho aggiunto else
+>>>>>>> euclid_implementation
                 
                 if inpainting:
                         map1 = inp.diffusive_inpaint2(map1, mask, niter)
@@ -386,18 +413,37 @@ class NeedAnalysis(object):
                        return self.Betajk2Betaj(betajk1, mask=mask)/fsky - noise
                 else: # Cross-
                         if mask is not None:
+<<<<<<< HEAD
                                map2 *= mask 
                                print(f'fsky mappa 2={np.mean(mask) :0.2f}')
                         map2 = hp.remove_dipole(map2, verbose=False)#.compressed()
+=======
+                               #map2 *= mask 
+                               print(f'fsky mappa 2={np.mean(mask) :0.2f}')
+                               bad_v_2 = np.where(mask==0)  #BIANCA aggiunto da 409 a 413 
+                               map2[bad_v_2]=hp.UNSEEN
+                               #map2 = hp.remove_dipole(map2, verbose=False)
+                               #map2[bad_v_2]=0.0
+                        else:
+                                map2 = hp.remove_dipole(map2, verbose=False)#.compressed()
+>>>>>>> euclid_implementation
                         if inpainting:
                                map2 = inp.diffusive_inpaint2(map2, mask, niter)
                                print('sono dentro inpainting')
                         betajk2 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map2, self.B, self.jmax, self.lmax)
-
+                        
                         #for j in range(self.jmax):
                         #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'T', betajk1[j,:], overwrite= True)     
                         #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'G', betajk2[j,:], overwrite= True)     
+<<<<<<< HEAD
                         return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)#/fsky #!! WARN /fsky, result unbiased
+=======
+                        if fsky_approx:
+                                print('fsky approximation=True')
+                                return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)/fsky 
+                        else:
+                                return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)
+>>>>>>> euclid_implementation
 
         def GetBetajkSims(self, field, nsim, mask=None, fname=None, EuclidSims=False):
                 """
@@ -477,7 +523,11 @@ class NeedAnalysis(object):
 
                 return betajk_sims_tot
         
+<<<<<<< HEAD
         def GetBetajSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, noise=0., EuclidSims=False, inpainting=False, niter=1000, path_inpainting="/u/ap/fbianchini/codes/inpainting/python/inpainting.py"):
+=======
+        def GetBetajSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, noise=0., EuclidSims=False,fsky_approx=False, inpainting=False, niter=1000, path_inpainting="/u/ap/fbianchini/codes/inpainting/python/inpainting.py"):
+>>>>>>> euclid_implementation
                 """
                 Evaluates needlet (auto- or cross-) power spectrum for simulated maps of a given field. 
 
@@ -540,15 +590,27 @@ class NeedAnalysis(object):
                         k = 0
                         if (field2 is None) and (fix_field is None): # Field1 x Field1
                                 for n in range(myid, nsim, nproc): 
+<<<<<<< HEAD
+=======
+                                        
+>>>>>>> euclid_implementation
                                         if EuclidSims==True:
                                                 m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
                                         else:
                                                 m1    = self.Sims.GetSimField(field1, n)
+<<<<<<< HEAD
                                         betaj = self.Map2Betaj(m1, k, mask=mask, noise=noise, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
+=======
+                                        betaj = self.Map2Betaj(m1, k, mask=mask, noise=noise,fsky_approx=fsky_approx, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
+>>>>>>> euclid_implementation
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         elif (field2 is not None) and (fix_field is None): # Field1 x Field2
                                 for n in range(myid, nsim, nproc): 
+<<<<<<< HEAD
+=======
+                                        print(f'Simulation number:{n}')
+>>>>>>> euclid_implementation
                                         if EuclidSims==True:
                                                 m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
                                                 m2    = self.Sims.GetSimField_Euclid(field2, n, self.lmax)
@@ -557,7 +619,11 @@ class NeedAnalysis(object):
                                                 m1    = self.Sims.GetSimField(field1, n)
                                                 m2    = self.Sims.GetSimField(field2, n)
                                         #print('sto calcolando betaj')
+<<<<<<< HEAD
                                         betaj = self.Map2Betaj(m1,k, map2=m2, mask=mask, noise=noise, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
+=======
+                                        betaj = self.Map2Betaj(m1,k, map2=m2, mask=mask, noise=noise, fsky_approx=fsky_approx,inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
+>>>>>>> euclid_implementation
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         elif (field2 is None) and (fix_field is not None): # Field1 x Fix_field (Null-test)
@@ -566,7 +632,11 @@ class NeedAnalysis(object):
                                                 m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
                                         else:
                                                 m1    = self.Sims.GetSimField(field1, n)
+<<<<<<< HEAD
                                         betaj = self.Map2Betaj(m1, k, map2=fix_field, mask=mask, noise=noise, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting, nsim=nsim)
+=======
+                                        betaj = self.Map2Betaj(m1, k, map2=fix_field, mask=mask, noise=noise,fsky_approx=fsky_approx, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting, nsim=nsim)
+>>>>>>> euclid_implementation
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         print(k, dim)
