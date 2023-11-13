@@ -569,6 +569,7 @@ class NeedAnalysis(object):
                         k = 0
                         if (field2 is None) and (fix_field is None): # Field1 x Field1
                                 for n in range(myid, nsim, nproc): 
+                                        
                                         if EuclidSims==True:
                                                 m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
                                         else:
@@ -578,6 +579,7 @@ class NeedAnalysis(object):
                                         k += 1
                         elif (field2 is not None) and (fix_field is None): # Field1 x Field2
                                 for n in range(myid, nsim, nproc): 
+                                        print(f'Simulation number:{n}')
                                         if EuclidSims==True:
                                                 m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
                                                 m2    = self.Sims.GetSimField_Euclid(field2, n, self.lmax)
