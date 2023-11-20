@@ -178,6 +178,8 @@ ax.set_xlim(binrange[0], binrange[1])
 #ax.axvline(mean,color='r')
 #ax.axvline(percentile[2],color='b')
 ax.axvline(Aisw_mean, color = 'b', linestyle='-')
+ax.axvline(Aisw_mean+Aisw_std, color = 'b' )
+ax.axvline(Aisw_mean-Aisw_std, color = 'b' )
 
 ax.axvline(1.,color ='grey',linestyle='--', label = 'Fiducial Aisw=1')
 plt.legend(loc='best')

@@ -552,7 +552,7 @@ def S_2_N_cum_ell(s2n, lmax):
         s2n_cum[l]= np.sqrt(s2n_cum[l])      
     return s2n_cum
 
-s2n_theory=S_2_N_th(betatg[1:jmax+1], delta_noise[1:jmax+1]**2)
+s2n_theory=S_2_N_th(betatg[1:jmax+1], (delta_noise[1:jmax+1])**2)
 s2n_mean_sim=S_2_N(betaj_TS_galT_mask_mean[1:jmax+1], delta_gammaj[1:,1:])
 s2n_theory_gamma=S_2_N(gammaJ_tg[1:], delta_gammaj[1:,1:])
 s2n_mean_sim_cl=S_2_N_ell(cls_recovered, delta_cl)
@@ -563,7 +563,7 @@ lmax_vec_cl = np.arange(start=2,stop=256,dtype=int)
 s2n_cum = S_2_N_cum(s2n_mean_sim, jmax_vec)
 s2n_cum_cl = S_2_N_cum_ell(s2n_mean_sim_cl,lmax_vec_cl)
 
-print(f's2n_cum={s2n_cum},\n s2n_cum_pcl={s2n_cum_cl}')
+#print(f's2n_cum={s2n_cum},\n s2n_cum_pcl={s2n_cum_cl}')
 
 #print(np.where(s2n_theory==s2n_theory.max()),np.where(betatg==betatg.max()) )
 
@@ -573,7 +573,7 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 
-ax.plot(myanalysis.jvec[1:jmax+1], s2n_theory, color='#2b7bbc',marker = 'o',ms=10, label='Expected')
+ax.plot(myanalysis.jvec[1:jmax+1], s2n_theory, color='#2b7bbc',marker = 'o',ms=10, label='Theory')
 ax.plot(myanalysis.jvec[1:jmax+1], s2n_mean_sim,marker = 'o',ms=10, label='From simulations')
 #ax.set_ylim(top=3.8)
 
@@ -585,7 +585,7 @@ ax.set_ylabel('Signal-to-Noise ratio')
 
 fig.tight_layout()
 plt.savefig(f'plot_tesi/Euclid/SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
-#plt.savefig(f'plot_tesi/Euclid/SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
+plt.savefig(f'plot_tesi/Euclid/SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
 
 ## CUMULATIVE
 
