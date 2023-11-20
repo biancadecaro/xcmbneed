@@ -32,20 +32,34 @@ class XCSpectraFile(object):
         
             self.lmax = lmax 
             self.lmin = lmin
+
+            ncol = np.shape(data)[1]
+
             #self.ell   = np.arange(lmin, lmax, dtype=np.float) #lmax+1
         
             print( 'lmin =', lmin)
             print( 'lmax =', lmax)
 
             self.ell = np.arange(self.lmin, self.lmax+1)
-            self.cltt = data[1]#np.zeros((lmin,(lmax+1))) #np.divide(data[1][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
-            self.cltg =  data[2]#np.zeros((lmin,(lmax+1))) #np.divide(data[2][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
-            self.clg1g1 = data[3]#np.zeros((lmin,(lmax+1))) #np.divide(data[3][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
-            
-            #self.cltt = data[1][lmin:]#np.divide(data[1][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[1][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
-            #self.cltg =  data[2][lmin:]#np.divide(data[2][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[2][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
-            #self.clg1g1 = data[3][lmin:]#np.divide(data[3][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[3][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
-            print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
+            if ncol == 4:
+                self.cltt = data[1]
+                self.cltg1 =  data[2]
+                self.clg1g1 = data[3]
+                print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
+
+            if ncol == 10:
+                self.cltt = data[1]
+                self.cltg1 =  data[2]
+                self.cltg2 =  data[3]
+                self.cltg3 =  data[4]
+                self.clg1g1 = data[5]
+                self.clg1g2 = data[6]
+                self.clg1g3 = data[7]
+                self.clg2g2 = data[8]
+                self.clg2g3 = data[9]
+                self.clg3g3 = data[10]
+
+                print(self.ell.shape, self.cltg1.shape, self.cltt.shape, self.clg1g1.shape)
 
 
             #print(self.cltg.shape, self.ell, self.ell.shape, lmin, lmax)
