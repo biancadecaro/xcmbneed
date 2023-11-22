@@ -94,7 +94,7 @@ ax1.axvline(percentile[1],color ='k',linestyle='-.', label = 'percentile posteri
 ax1.axvline(mode(posterior_distr)[0][0],color ='k',linestyle=':', label = 'max posterior=%1.2f' %mode(posterior_distr)[0][0])#(0.6847,color ='k',linestyle='-.', label = 'Planck 2018')
 ax1.axvline(np.mean(posterior_distr),color ='r',linestyle='-.', label = 'mean posterior=%1.2f' %np.mean(posterior_distr))#(0.6847,color ='k',linestyle='-.', label = 'Planck 2018')
 plt.legend(loc = 'best')
-plt.savefig(f'plot_tesi/Parameter_estimation/chi_squared_mean_{len(OmL)}_theoretical_OmL.png')
+#plt.savefig(f'plot_tesi/Parameter_estimation/chi_squared_mean_{len(OmL)}_theoretical_OmL.png')
 
 filename = f'Posterior_OmL_{len(OmL)}_mean_sim_best-fit_theoretical_OmL'
 
@@ -137,8 +137,8 @@ ax.axvline(0.6847,color ='grey',linestyle='--', label = 'Planck 2018')
 plt.legend(loc='best')
 plt.tight_layout()
 
-plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.png')
-plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.pdf')
+plt.savefig('plot_tesi/Parameter_estimation/PROVA_' +filename +'.png')
+#plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.pdf')
 
 ####################################################################################################################
 ##################################### ALTRO PLOT ##################################################################
@@ -192,5 +192,5 @@ ax.axvline(0.6847,color ='grey',linestyle='--', label = 'Planck 2018')
 plt.legend(loc='best')
 plt.tight_layout()
 filename = f'Posterior_OmL_{len(OmL)}_mean_sim_best-fit_theoretical_OmL_from_sims'
-plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.png')
-plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.pdf')
+plt.savefig('plot_tesi/Parameter_estimation/PROVA_' +filename +'.png')
+#plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.pdf')

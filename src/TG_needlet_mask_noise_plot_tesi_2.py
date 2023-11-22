@@ -185,8 +185,8 @@ sns.heatmap(corr_TS_galS_mask, annot=True, fmt='.2f', annot_kws={"size": 10},cma
 #
 plt.tight_layout()
 plt.savefig(out_dir+'signal_only_corr_T_gal_noise_mask_jmax'+str(jmax)+'_B = %1.2f ' %myanalysis.B +'_nsim'+str(nsim)+'_nside'+str(simparams['nside'])+'_mask.png')
-
-fig, axs = plt.subplots(ncols=2, nrows=1,figsize=(20, 10))   
+####################################################
+fig, axs = plt.subplots(ncols=1, nrows=2,figsize=(10, 20))   
 plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
 mask_ = np.tri(corr_TS_galT.shape[0],corr_TS_galT.shape[1],0)
