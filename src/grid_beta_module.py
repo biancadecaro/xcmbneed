@@ -84,7 +84,7 @@ def Compute_cl_grid(params, delta_ell, myanalysis, nside, lmax):
     return cl_TS_galS
 
 def Compute_beta_grid_theoretical(params, dir,  B,lmax, jmax):
-    xcspectra       = [spectra.XCSpectraFile(clfname= str(dir['fname_xcspectra'][xc]), nltt=None, WantTG = True)  for xc in range(len(params))]
+    xcspectra       = [spectra.XCSpectraFile(clfname= str(dir['fname_xcspectra'][xc]),  WantTG = True)  for xc in range(len(params))]
     print(xcspectra[0].cltt.shape)
     betatg = np.zeros((len(params), jmax+1))
     delta = np.zeros((len(params), jmax+1))
@@ -100,9 +100,8 @@ def Compute_beta_grid_theoretical(params, dir,  B,lmax, jmax):
         np.savetxt(dir['out_dir'][i]+f'beta_TS_galS_theoretical_OmL{params[i]}_B{B}.dat', betatg[i])
         np.savetxt(dir['out_dir'][i]+f'variance_TS_galS_theoretical_OmL{params[i]}_B{B}.dat', delta[i])
 
-<<<<<<< HEAD
     return np.array(betatg), np.array(delta)
-=======
+
 def Compute_gamma_grid_theoretical(params,wl, dir,  B,lmax, jmax):
     xcspectra       = [spectra.XCSpectraFile(clfname= str(dir['fname_xcspectra'][xc]),  WantTG = True)  for xc in range(len(params))]
     print(xcspectra[0].cltt.shape)
@@ -119,7 +118,6 @@ def Compute_gamma_grid_theoretical(params,wl, dir,  B,lmax, jmax):
         np.savetxt(dir['out_dir'][i]+f'beta_TS_galS_theoretical_OmL{params[i]}_B{B}.dat', gamma[i])
 
     return np.array(gamma)
->>>>>>> euclid_implementation
 
 def Make_plot(betaj_sims_TS_galS, params, jmax, myanalysis, dir, nside):
     print(dir['fname_xcspectra'])
