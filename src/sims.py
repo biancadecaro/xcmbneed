@@ -38,12 +38,15 @@ class KGsimulations(object):
 
 		if WantTG == True:
 			nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/4
+			if nbins!=1:
+				nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/(3*nbins)
 		else:
 			nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/6
 		
 		if EuclidSims == True:
 			print('... Euclid sims requested ...')
 			nsim_found = len(glob.glob(self.LibDir + "map_nbin1_NSIDE" + str(self.SimPars['nside']) + "_lmax*_*_*.fits"))/2
+		
 		
 
 		print('nsim_found = ', nsim_found)
@@ -100,11 +103,21 @@ class KGsimulations(object):
 						#cls_from_sims = hp.sphtfunc.anafast(map1=TS_map, map2=galS_map)
 						#np.savetxt('spectra/clsTG_from_sims_null.dat', cls_from_sims)
 
-					else: #devo ottenere 3 mappe di GG correlate tra di loro e poi correrarle con T?
-						T1S_map, gal1S_map = utils.GetCorrMaps(self.XCSpectraFile.cltg1, self.XCSpectraFile.cltt, self.XCSpectraFile.clg1g1, self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
-						T2S_map, gal3S_map = utils.GetCorrMaps(self.XCSpectraFile.cltg2, self.XCSpectraFile.cltt, self.XCSpectraFile.clg2g2, self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
-						T3S_map, gal3S_map = utils.GetCorrMaps(self.XCSpectraFile.cltg3, self.XCSpectraFile.cltt, self.XCSpectraFile.clg3g3, self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
-
+					else: #per ora non sto correlando i bins tra di loro
+						TS_map = np.zeros((nbins, hp.nside2npix(nside=self.SimPars['nside'])))
+						galS_map = np.zeros((nbins, hp.nside2npix(nside=self.SimPars['nside'])))
+						galT_map = np.zeros((nbins, hp.nside2npix(nside=self.SimPars['nside'])))
+						fname_TS = [self.LibDir + "sim_" + ('%04d' % n) + f"_TS{bin}_"+ ('%04d' % self.SimPars['nside']) + ".fits" for bin in range(nbins)]
+						fname_galS = [self.LibDir + "sim_" + ('%04d' % n) + "_galS"+str(bin)+"_" + ('%04d' % self.SimPars['nside']) + ".fits" for bin in range(nbins)]
+						fname_galT = [self.LibDir + "sim_" + ('%04d' % n) + "_galT"+str(bin)+"_" + ('%04d' % self.SimPars['nside']) + ".fits" for bin in range(nbins)]
+						
+						for bin in range(nbins):
+							TS_map[bin], galS_map[bin] = utils.GetCorrMaps(self.XCSpectraFile.cltg[bin], self.XCSpectraFile.cltt, self.XCSpectraFile.clgg[bin], self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
+							galT_map[bin] = utils.Counts2Delta(utils.GetCountsTot(galS_map[bin], self.SimPars['ngal']/nbins, dim=self.SimPars['ngal_dim']))
+							
+							hp.write_map(fname_TS[bin], TS_map[bin], nest=False)
+							hp.write_map(fname_galS[bin], galS_map[bin], nest=False)
+							hp.write_map(fname_galT[bin], galT_map[bin], nest=False)
 						
 
 				else:	
@@ -139,6 +152,13 @@ class KGsimulations(object):
 			
 			if myid == 0: print("-->simulations done...")
 
+	#def GetSimField(self, field, idx, nbins=None):
+	#	if nbins==None:
+	#		fname = self.LibDir + "sim_" + ('%04d' % idx) + "_" + field + "_" + ('%04d' % self.SimPars['nside']) + ".fits"
+	#	else:
+	#		for bin in range(nbins):
+	#			fname = self.LibDir + "sim_" + ('%04d' % idx) + "_" + field  +str(bin)+"_" + ('%04d' % self.SimPars['nside']) + ".fits"
+	#	return hp.read_map(fname, verbose=False)
 	def GetSimField(self, field, idx):
 		fname = self.LibDir + "sim_" + ('%04d' % idx) + "_" + field + "_" + ('%04d' % self.SimPars['nside']) + ".fits"
 		return hp.read_map(fname, verbose=False)

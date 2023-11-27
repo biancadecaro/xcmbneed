@@ -274,7 +274,7 @@ class NeedAnalysis(object):
         Class to perform needlet analysis (based on Alessandro Renzi's library). 
         @see arXiv:0707.0844    
         """     
-        def __init__(self, jmax, lmax, OutDir, Sims, mask=None, flattening=None, 
+        def __init__(self, jmax, lmax, OutDir, Sims, nbins, mask=None, flattening=None, 
                                  pixwin=False, fwhm_smooth=None, fsky_approx=False):
         #def __init__(self, jmax, lmin, lmax, OutDir, Sims, mask=None, flattening=None, 
         
@@ -301,6 +301,7 @@ class NeedAnalysis(object):
                 self.lmax   = lmax
                 self.Sims   = Sims    
                 self.OutDir = OutDir  
+                self.nbins  = nbins
                 #self.fsky_approx = fsky_approx
                 #print(f'fsky_approx = {fsky_approx}')
 
@@ -344,7 +345,7 @@ class NeedAnalysis(object):
 
                 return betaj
 
-        def Map2Betaj(self, map1,nsim, map2=None, mask=None, noise=0., fsky_approx=False, inpainting=False, niter=2000, path_inpainting="python/inpainting.py"):
+        def Map2Betaj(self, map1, nbins, map2=None, mask=None, noise=0., fsky_approx=False, inpainting=False, niter=2000, path_inpainting="python/inpainting.py"):
                 """
                 Returns the needlet (auto- or cross-) power spectrum \beta_j given Healpix maps.
 
@@ -561,7 +562,7 @@ class NeedAnalysis(object):
                                 if myid < (nsim) % nproc:
                                         dim += 1
                         
-                        print(dim)
+                        #print(dim)
 
                         betaj_sims = np.zeros((int(dim), self.jmax+1)) 
 

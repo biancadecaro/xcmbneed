@@ -9,7 +9,7 @@ class XCSpectraFile(object):
            ncol = 5 -> l, clkg, clgg, clkk, nlkk
            ncol = 8 -> l, clkg, clkmu, clgg, clgmu, clmumu, clkk, nlkk
     """
-    def __init__(self, clfname, WantTG,  lmin=None, lmax=None, b=1, alpha=1 ): 
+    def __init__(self, clfname, WantTG, nbins, lmin=None, lmax=None, b=1, alpha=1 ): 
         """ load Cls.
             ! All spectra must be passed from lmin = 0 !
              * clfname          = file name to load from.
@@ -40,26 +40,22 @@ class XCSpectraFile(object):
             print( 'lmin =', lmin)
             print( 'lmax =', lmax)
 
-            self.ell = np.arange(self.lmin, self.lmax+1)
-            if ncol == 4:
+            if nbins==1:
                 self.cltt = data[1]
                 self.cltg1 =  data[2]
                 self.clg1g1 = data[3]
                 print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
 
-            if ncol == 10:
+            else:
                 self.cltt = data[1]
-                self.cltg1 =  data[2]
-                self.cltg2 =  data[3]
-                self.cltg3 =  data[4]
-                self.clg1g1 = data[5]
-                self.clg1g2 = data[6]
-                self.clg1g3 = data[7]
-                self.clg2g2 = data[8]
-                self.clg2g3 = data[9]
-                self.clg3g3 = data[10]
+                self.cltg = np.zeros((nbins,self.ell.shape[0]))
+                self.clgg = np.zeros((nbins,self.ell.shape[0]))#np.zeros((nbins(nbins+3)/2-nbins,self.ell))
+                for bin in range(nbins):
+                    self.cltg[bin] =  data[bin+2]
+                for bin in range(nbins):#range(nbins(nbins+3)/2-nbins):
+                    self.clgg[bin] = data[nbins+bin+2]
 
-                print(self.ell.shape, self.cltg1.shape, self.cltt.shape, self.clg1g1.shape)
+                print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clgg.shape)
 
 
             #print(self.cltg.shape, self.ell, self.ell.shape, lmin, lmax)
