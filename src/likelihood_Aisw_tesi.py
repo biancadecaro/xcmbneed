@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import likelihood_analysis_module as liklh
 from scipy.stats import chi2, mode
 import cython_mylibc as pippo
+from scipy.interpolate import RectBivariateSpline, interp1d
+
 import seaborn as sns
 sns.set()
 sns.set(style = 'white')
@@ -39,7 +41,7 @@ plt.rcParams['font.size'] = 20
 plt.rcParams['lines.linewidth']  = 3.
 
 
-Aisw=np.linspace(0.0,2.,31)
+Aisw=np.linspace(0.0,2.,100)#np.linspace(0.0,2.,31)
 jmax = 12
 lmax = 782
 
@@ -104,12 +106,13 @@ textstr = '\n'.join((
     ))
 
 
-ax.text(1.3,1.5, textstr, 
+ax.text(1.37,0.02, textstr, 
     verticalalignment='top')#, bbox=props)
 binwidth = (Aisw[-1]-Aisw[0])/(len(Aisw)-1)
 binrange = [Aisw[0]+binwidth/2, Aisw[-1]+binwidth/2]
 
-sns.histplot(posterior_distr, stat='density',binwidth=binwidth,binrange=binrange,element='step',fill=True,alpha=0.5 ,color='#2b7bbc', ax=ax)
+sns.lineplot(x=Aisw, y=lik)
+sns.histplot(posterior_distr, stat='probability',binwidth=binwidth,binrange=binrange,element='step',fill=True,alpha=0.5 ,color='#2b7bbc', ax=ax)
 
 ax.set_xlim(binrange[0], binrange[1])
 ax.axvline(percentile[0],color='b')
@@ -121,8 +124,8 @@ ax.axvline(Aisw[index], color = 'b', linestyle='-')
 ax.axvline(1.,color ='grey',linestyle='--', label = 'Fiducial Aisw')
 plt.legend(loc='best')
 plt.tight_layout()
-plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.png')
-plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.pdf')
+plt.savefig('plot_tesi/Parameter_estimation/' +filename +'_100grid_like.png')
+#plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.pdf')
 
 ################################################################################
 ############################## ALRO PLOT #######################################
