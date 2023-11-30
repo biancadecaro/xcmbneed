@@ -563,6 +563,10 @@ lmax_vec_cl = np.arange(start=2,stop=256,dtype=int)
 s2n_cum = S_2_N_cum(s2n_mean_sim, jmax_vec)
 s2n_cum_cl = S_2_N_cum_ell(s2n_mean_sim_cl,lmax_vec_cl)
 
+s2n_mean_sim_no_mask=S_2_N(betaj_TS_galT_mean, cov_TS_galT)####
+s2n_cum_no_mask = S_2_N_cum(s2n_mean_sim_no_mask, jmax_vec)
+print(f's2n_cum_no_mask={s2n_cum_no_mask}')
+
 #print(f's2n_cum={s2n_cum},\n s2n_cum_pcl={s2n_cum_cl}')
 
 #print(np.where(s2n_theory==s2n_theory.max()),np.where(betatg==betatg.max()) )
