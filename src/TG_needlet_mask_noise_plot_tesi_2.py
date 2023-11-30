@@ -425,29 +425,45 @@ plt.savefig(f'plot_tesi/Planck Mask/PLANCK_MASK_diff_cov_betaj_theory_T_gal_jmax
 ############################## SIGNAL TO NOISE RATIO #################################
 
 def S_2_N(beta, cov_matrix):
+    s_n = np.zeros(len(beta))
     cov_inv = np.linalg.inv(cov_matrix)
-    s_n = np.zeros(jmax+1)
     temp = np.zeros(len(cov_matrix[0]))
     for i in range(len(cov_matrix[0])):
         for j in range(len(beta)):
+            #s_n[i] += np.dot(beta[i], np.dot(cov_inv[i, j], beta[j]))
             temp[i] += cov_inv[i][j]*beta[j]
         s_n[i] = beta[i].T*temp[i]
-    return np.sqrt(s_n)
+    return s_n
 
 def S_2_N_th(beta, variance):
     s_n = np.divide((beta)**2, variance)
-    return np.sqrt(s_n)
+    return s_n
 
 def S_2_N_sum(beta, variance):
     s_n = np.divide((beta)**2, variance).sum()
-    return np.sqrt(s_n)
+    return s_n
+
+def S_2_N_cum(s2n, jmax):
+    s2n_cum = np.zeros(jmax.shape[0])
+    for j,jj in enumerate(jmax):
+        for ijj in range(1,jj):
+            s2n_cum[j] +=s2n[ijj]
+        s2n_cum[j]= np.sqrt(s2n_cum[j])      
+    return s2n_cum
 
 s2n_theory=S_2_N_th(betatg, delta_noise**2)
 s2n_mean_sim=S_2_N_th(betaj_TS_galT_mask_mean, delta_noise**2)
-s2n_mask_noise = S_2_N_sum(betaj_TS_galT_mask_mean, delta_noise**2)
-s2n = S_2_N_sum(betaj_TS_galS_mean, delta**2)
 
-print(f's2n_mask_noise={s2n_mask_noise:0.2f}', f's2n={s2n:0.2f}')
+s2n_mean_sim_cov=S_2_N(betaj_TS_galT_mask_mean, cov_TS_galT_mask)
+jmax_vec = np.arange(0,jmax+1)
+#s2n_mask_noise = S_2_N_sum(betaj_TS_galT_mask_mean, delta_noise**2)
+#s2n = S_2_N_sum(betaj_TS_galS_mean, delta**2)
+s2n = S_2_N_cum(s2n_theory, jmax_vec)
+s2n_mask_noise_cov = S_2_N_cum(s2n_mean_sim_cov, jmax_vec)
+s2n_mask_noise = S_2_N_cum(s2n_mean_sim, jmax_vec)
+
+
+print(f's2n_mask_cum_cov={s2n_mask_noise_cov}',f's2n_mask_cum={s2n_mask_noise}', f's2n={s2n}')
 
 fig = plt.figure(figsize=(17,10))
 

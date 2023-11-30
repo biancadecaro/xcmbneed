@@ -573,8 +573,8 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 
-ax.plot(myanalysis.jvec[1:jmax+1], s2n_theory, color='#2b7bbc',marker = 'o',ms=10, label='Theory')
-ax.plot(myanalysis.jvec[1:jmax+1], s2n_mean_sim,marker = 'o',ms=10, label='From simulations')
+ax.plot(myanalysis.jvec[1:jmax+1], s2n_theory, color='#2b7bbc',marker = 'o',ms=10, label='Full-sky')
+ax.plot(myanalysis.jvec[1:jmax+1], s2n_mean_sim,marker = 'o',ms=10, label=r'From simulations, $f_{\mathrm{sky}}=%1.2f$'%fsky)
 #ax.set_ylim(top=3.8)
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
