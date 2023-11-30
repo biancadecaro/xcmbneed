@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import likelihood_analysis_module as liklh
 from scipy.stats import chi2, mode
 import cython_mylibc as pippo
+from scipy.interpolate import CubicSpline, interp1d
+from scipy.integrate import quad
 import seaborn as sns
 sns.set()
 sns.set(style = 'white')
@@ -39,7 +41,8 @@ plt.rcParams['font.size'] = 20
 plt.rcParams['lines.linewidth']  = 3.
 
 
-Aisw=np.linspace(0.0,2.,31)
+Aisw=np.linspace(0.0,2.,100)
+Aisw_int=np.linspace(0.0,2.,1000)
 jmax = 12
 lmax = 782
 
@@ -57,7 +60,7 @@ gamma_theory = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/EUCLID/
 
 fsky=0.3563690185546875
 
-num_sim = 45
+num_sim = 79
 
 beta_fid =   beta_fid_array[num_sim]
 
@@ -69,6 +72,8 @@ chi_squared = liklh.Calculate_chi2_grid(beta_fid=beta_fid, beta_grid=beta_A, cov
 perc = chi2.cdf(chi_squared, nj)
 
 lik = liklh.Likelihood(chi_squared=chi_squared)
+interp_lik= CubicSpline(x=Aisw,y=lik)
+lik_int= interp_lik(Aisw_int)
 
 posterior_distr = liklh.Sample_posterior(chi_squared, Aisw)
 
@@ -108,12 +113,13 @@ textstr = '\n'.join((
     ))
 
 
-ax.text(1.40,0.75, textstr, 
+ax.text(1.37,0.02, textstr, 
     verticalalignment='top')#, bbox=props)
 binwidth = (Aisw[-1]-Aisw[0])/(len(Aisw)-1)
 binrange = [Aisw[0]+binwidth/2, Aisw[-1]+binwidth/2]
 
-sns.histplot(posterior_distr, stat='density',binwidth=binwidth,binrange=binrange,element='step',fill=True,alpha=0.5 ,color='#2b7bbc', ax=ax)
+sns.lineplot(x=Aisw, y=lik)
+sns.histplot(posterior_distr, stat='probability',binwidth=binwidth,binrange=binrange,element='step',fill=True,alpha=0.5 ,color='#2b7bbc', ax=ax)
 
 ax.set_xlim(binrange[0], binrange[1])
 ax.axvline(percentile[0],color='b')
@@ -125,8 +131,45 @@ ax.axvline(Aisw[index], color = 'b', linestyle='-')
 ax.axvline(1.,color ='grey',linestyle='--', label = 'Fiducial Aisw=1')
 plt.legend(loc='best')
 plt.tight_layout()
-plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.png')
-plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.pdf')
+plt.savefig('plot_tesi/Parameter_estimation/' +filename +'_100grid_like.png')
+#plt.savefig('plot_tesi/Parameter_estimation/' +filename +'_100grid_like.pdf')
+
+fig = plt.figure(figsize=(10,7))
+ax = fig.add_subplot(1, 1, 1)
+
+def integrand(x):
+    return interp_lik(x)
+
+y_area = np.array([quad(integrand, Aisw_int.min(), i)[0] for i in Aisw_int])
+
+total_area = y_area[-1]
+
+pdf = lik_int/total_area
+
+area = np.array([quad(integrand, Aisw_int.min(), i)[0] for i in Aisw_int])/total_area
+
+f = interp1d(area, Aisw_int)
+
+sigma_left = f(0.16)
+sigma_right = f(0.84)
+plt.plot(Aisw_int, lik_int)
+plt.fill_between(Aisw_int, 0, lik_int, where=(Aisw_int >= sigma_left) & (Aisw_int <= sigma_right), alpha=0.5)
+ax.set_ylim(bottom=0)
+ax.set_title(r'Probability distribution for $A_{iSW}$ , grid = '+str(len(Aisw))+' points')
+textstr = '\n'.join((
+       r'$A_{\mathrm{iSW}}=%.2f^{+ %.2f}_{-%.2f}$' % (Aisw[index], sigma_right-Aisw[index], Aisw[index]-sigma_left ),
+
+    #r'$\pm%.2f$' % (Aisw[index]-percentile[0], ),
+    #r'$+%.2f$' % (percentile[2]-Aisw[index], )
+    ))
+ax.text(1.37,0.02, textstr, 
+    verticalalignment='top')#, bbox=props)
+ax.axvline(1.,color ='grey',linestyle='--', label = 'Fiducial Aisw')
+plt.legend(loc='best')
+plt.tight_layout()
+plt.savefig('plot_tesi/Parameter_estimation/Likelihood_Aisw_EUCLID_sim_100grid.png')
+plt.savefig('plot_tesi/Parameter_estimation/Likelihood_Aisw_EUCLID_sim_100grid.pdf')
+
 
 ################################################################################
 ############################## ALRO PLOT #######################################
@@ -165,12 +208,12 @@ textstr = '\n'.join((
     ))
 
 
-ax.text(1.40, 0.75, textstr, 
+ax.text(1.37,0.02, textstr, 
     verticalalignment='top')#, bbox=props)
 binwidth = (Aisw[-1]-Aisw[0])/(len(Aisw)-1)
 binrange = [Aisw[0]+binwidth/2, Aisw[-1]+binwidth/2]
 
-sns.histplot(Aisw_min, stat='density',binwidth=binwidth,binrange=binrange,element='step',fill=True,alpha=0.5 ,color='#2b7bbc', ax=ax)
+sns.histplot(Aisw_min, stat='probability',binwidth=binwidth,binrange=binrange,element='step',fill=True,alpha=0.5 ,color='#2b7bbc', ax=ax)
 
 ax.set_xlim(binrange[0], binrange[1])
 #ax.axvline(percentile[0],color='b')
