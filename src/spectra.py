@@ -20,20 +20,19 @@ class XCSpectraFile(object):
         self.clfname = clfname
 
         if WantTG == True:
-            data = np.genfromtxt(clfname)
-            self.ell = data[0].astype(int)
+            data = np.genfromtxt(clfname, names=True)
+            self.ell = data['L'].astype(int)
                         
             if lmin == None:
-                lmin = data[0][0].astype(int)
+                lmin = data['L'][0].astype(int)
                 
             
             if lmax == None:
-                lmax = data[0][-1].astype(int)
+                lmax = data['L'][-1].astype(int)
         
             self.lmax = lmax 
             self.lmin = lmin
 
-            ncol = np.shape(data)[1]
 
             #self.ell   = np.arange(lmin, lmax, dtype=np.float) #lmax+1
         
@@ -44,16 +43,20 @@ class XCSpectraFile(object):
                 self.cltt = data[1]
                 self.cltg1 =  data[2]
                 self.clg1g1 = data[3]
-                print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
+                #print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
 
             else:
-                self.cltt = data[1]
+                self.cltt = data['TxT']
                 self.cltg = np.zeros((nbins,self.ell.shape[0]))
-                self.clgg = np.zeros((nbins,self.ell.shape[0]))#np.zeros((nbins(nbins+3)/2-nbins,self.ell))
-                for bin in range(nbins):
-                    self.cltg[bin] =  data[bin+2]
-                for bin in range(nbins):#range(nbins(nbins+3)/2-nbins):
-                    self.clgg[bin] = data[nbins+bin+2]
+                self.clgg = np.zeros((nbins,nbins,self.ell.shape[0]))
+                for bin1 in range(nbins):
+                    self.cltg[bin1,:] =  data[f'TxW{bin1+1}']
+                    for bin2 in range(nbins):
+                        ibin1 = min(bin1+1,bin2+1)
+                        ibin2 = max(bin1+1,bin2+1)
+                        #print(bin1,bin2,ibin1,ibin2)
+                        self.clgg[bin1, bin2,:] = data[f'W{ibin1}xW{ibin2}']
+
 
                 print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clgg.shape)
 
@@ -439,6 +442,33 @@ class NeedletTheory(object):
             #print(delta_beta_j_squared.shape)
             return np.sqrt(delta_beta_j_squared)
     
+    def delta_beta_j_tomo(self, nbins,jmax,lmax, cltg, cltt, clgg,  noise_gal_l=None):
+          
+            delta_beta_j = np.zeros((nbins,nbins,jmax+1,jmax+1))
+            if noise_gal_l is not None:
+                clgg_tot = clgg+noise_gal_l
+            else:
+                clgg_tot = clgg
+    
+            ell  = np.arange(0, lmax+1, dtype=int)
+            bjl  = np.zeros((jmax+1,lmax+1))
+            #delta_gammaj = np.zeros((jmax+1, jmax+1))
+            for j in range(jmax+1):
+                b2 = self.b_need(ell/self.B**j)**2
+                b2[np.isnan(b2)] = 0.
+                bjl[j,:] = b2*(2*ell+1.) 
+            covll = np.zeros((nbins, nbins,lmax+1,lmax+1))
+            delta_beta_j= np.zeros((nbins,nbins,jmax+1,jmax+1))
+            for ibin in range(nbins):
+                for iibin in range(nbins):
+                    for ell1 in range(lmax+1):
+                        for ell2 in range(lmax+1):
+                            #if cltt[ell1]*cltt[ell2]*clgg_tot[ibin,iibin,ell1]*clgg_tot[ibin,iibin,ell2] < 0: 
+                            #    print(ibin,iibin,ell1,ell2)
+                            #    print(cltt[ell1]*cltt[ell2]*clgg_tot[ibin,iibin,ell1]*clgg_tot[ibin,iibin,ell2])
+                            covll[ibin,iibin,ell1,ell2] = (np.sqrt(cltg[ibin,ell1]*cltg[iibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell2])+np.sqrt(cltt[ell1]*cltt[ell2]*clgg_tot[ibin,iibin,ell1]*clgg_tot[ibin,iibin,ell2]))/(2.*ell1+1)
+                    #delta_beta_j[ibin,iibin] = np.dot(bjl, np.dot(covll[ibin,iibin], bjl.T))
+            return covll#delta_beta_j/(4*np.pi)**2
 
 
     def variance_gammaj(self, cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
@@ -466,4 +496,28 @@ class NeedletTheory(object):
             for ell2 in range(lmax+1):
                 covll[ell1,ell2] = Mll[ell1,ell2]*(cltg[ell1]*cltg[ell2]+np.sqrt(cltt[ell1]*cltt[ell2]*clgg_tot[ell1]*clgg_tot[ell2]))/(2.*ell1+1)
         delta_gammaj = np.dot(bjl, np.dot(covll, bjl.T))
+        return delta_gammaj/(4*np.pi)**2
+    
+    def variance_gammaj_tomo(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
+        if noise_gal_l is not None:
+            clgg_tot = clgg+noise_gal_l
+        else:
+            clgg_tot = clgg
+
+        Mll  = self.get_Mll(wl, lmax=lmax)
+        ell  = np.arange(0, lmax+1, dtype=int)
+        bjl  = np.zeros((jmax+1,lmax+1))
+        #delta_gammaj = np.zeros((jmax+1, jmax+1))
+        for j in range(jmax+1):
+            b2 = self.b_need(ell/self.B**j)**2
+            b2[np.isnan(b2)] = 0.
+            bjl[j,:] = b2*(2*ell+1.) 
+        covll = np.zeros((nbins, nbins,lmax+1,lmax+1))
+        delta_gammaj= np.zeros((nbins,nbins, jmax+1,jmax+1))
+        for ibin in range(nbins):
+            for iibin in range(nbins):
+                for ell1 in range(lmax+1):
+                    for ell2 in range(lmax+1):
+                        covll[ibin,iibin,ell1,ell2] = Mll[ell1,ell2]*(cltg[ibin,ell1]*cltg[iibin,ell2]+np.sqrt(cltt[ell1]*cltt[ell2]*clgg_tot[ibin,iibin,ell1]*clgg_tot[ibin,iibin,ell2]))/(2.*ell1+1)
+                delta_gammaj[ibin,iibin] = np.dot(bjl, np.dot(covll[ibin,iibin], bjl.T))
         return delta_gammaj/(4*np.pi)**2

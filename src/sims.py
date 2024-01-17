@@ -45,7 +45,7 @@ class KGsimulations(object):
 		
 		if EuclidSims == True:
 			print('... Euclid sims requested ...')
-			nsim_found = len(glob.glob(self.LibDir + "map_nbin1_NSIDE" + str(self.SimPars['nside']) + "_lmax*_*_*.fits"))/2
+			nsim_found = len(glob.glob(self.LibDir + "map_nbin*_NSIDE" + str(self.SimPars['nside']) + "_lmax*_*_*.fits"))/(nbins+1)
 		
 		
 
@@ -112,7 +112,7 @@ class KGsimulations(object):
 						fname_galT = [self.LibDir + "sim_" + ('%04d' % n) + "_galT"+str(bin)+"_" + ('%04d' % self.SimPars['nside']) + ".fits" for bin in range(nbins)]
 						
 						for bin in range(nbins):
-							TS_map[bin], galS_map[bin] = utils.GetCorrMaps(self.XCSpectraFile.cltg[bin], self.XCSpectraFile.cltt, self.XCSpectraFile.clgg[bin], self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
+							TS_map[bin], galS_map[bin] = utils.GetCorrMaps(self.XCSpectraFile.cltg[bin], self.XCSpectraFile.cltt, self.XCSpectraFile.clgg[bin, bin], self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
 							galT_map[bin] = utils.Counts2Delta(utils.GetCountsTot(galS_map[bin], self.SimPars['ngal']/nbins, dim=self.SimPars['ngal_dim']))
 							
 							hp.write_map(fname_TS[bin], TS_map[bin], nest=False)
@@ -163,8 +163,10 @@ class KGsimulations(object):
 		fname = self.LibDir + "sim_" + ('%04d' % idx) + "_" + field + "_" + ('%04d' % self.SimPars['nside']) + ".fits"
 		return hp.read_map(fname, verbose=False)
 	
-	def GetSimField_Euclid(self, field, idx,lmax):
-		fname = self.LibDir + "map_nbin1_NSIDE" + str(self.SimPars['nside']) + "_lmax" + str(lmax)  + "_" + ('%05d' % (idx+1))+ "_" + field + ".fits"#map_nbin1_NSIDE128_lmax256_00327_T.fits
+	def GetSimField_Euclid(self, field, nbins,idx,lmax, noise=False):
+		fname = self.LibDir + f"map_nbin{nbins}_NSIDE" + str(self.SimPars['nside']) + "_lmax" + str(lmax)  +  "_" + field +"_" + ('%05d' % (idx+1))+ ".fits"#map_nbin1_NSIDE128_lmax256_00327_T.fits
+		if noise==True:
+			fname = self.LibDir + f"map_nbin{nbins}_NSIDE" + str(self.SimPars['nside']) + "_lmax" + str(lmax)  +  "_" + field +"_" + ('%05d' % (idx+1))+ "_noise.fits"#map_nbin1_NSIDE128_lmax256_00327_T.fits
 		return hp.read_map(fname, verbose=False)
 	
 	def GetMeanField(self, field, idx):

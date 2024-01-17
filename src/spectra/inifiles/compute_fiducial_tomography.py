@@ -338,12 +338,12 @@ if __name__ == "__main__":
     lmax = 2050
     ell = np.arange(lmin, lmax+1)
 
-    setting = ['nbins3']
+    setting = ['nbins10']
 
-    fid_nbins3 = Compute_grid(FidParams_IST, lmax=lmax, lmin=lmin, settings=setting)
+    fid_nbins10 = Compute_grid(FidParams_IST, lmax=lmax, lmin=lmin, settings=setting)
 
-    filename = 'fiducial_IST_nbins3_lmax2050_lmin0'
+    filename = 'fiducial_IST_nbins10_lmax2050_lmin0'
 
 
-    Save_spectra(filename, fid_nbins3)
+    Save_spectra(filename, fid_nbins10)
 

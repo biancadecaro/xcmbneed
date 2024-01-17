@@ -275,7 +275,7 @@ class NeedAnalysis(object):
         @see arXiv:0707.0844    
         """     
         def __init__(self, jmax, lmax, OutDir, Sims, nbins, mask=None, flattening=None, 
-                                 pixwin=False, fwhm_smooth=None, fsky_approx=False):
+                                 pixwin=False, fwhm_smooth=None, fsky_approx=False, EuclidSims=False):
         #def __init__(self, jmax, lmin, lmax, OutDir, Sims, mask=None, flattening=None, 
         
                 """
@@ -302,6 +302,7 @@ class NeedAnalysis(object):
                 self.Sims   = Sims    
                 self.OutDir = OutDir  
                 self.nbins  = nbins
+                self.EuclidSims=EuclidSims
                 #self.fsky_approx = fsky_approx
                 #print(f'fsky_approx = {fsky_approx}')
 
@@ -507,7 +508,7 @@ class NeedAnalysis(object):
 
                 return betajk_sims_tot
         
-        def GetBetajSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, noise=0., EuclidSims=False,fsky_approx=False, inpainting=False, niter=1000, path_inpainting="/u/ap/fbianchini/codes/inpainting/python/inpainting.py"):
+        def GetBetajSimsFromMaps(self, field1, nsim,nbins, field2=None, fix_field=None, mask=None, fname=None, noise=0.,fsky_approx=False, inpainting=False, niter=1000, path_inpainting="/u/ap/fbianchini/codes/inpainting/python/inpainting.py"):
                 """
                 Evaluates needlet (auto- or cross-) power spectrum for simulated maps of a given field. 
 
@@ -571,8 +572,8 @@ class NeedAnalysis(object):
                         if (field2 is None) and (fix_field is None): # Field1 x Field1
                                 for n in range(myid, nsim, nproc): 
                                         
-                                        if EuclidSims==True:
-                                                m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
+                                        if self.EuclidSims==True:
+                                                m1    = self.Sims.GetSimField_Euclid(field1, nbins,n, self.lmax)
                                         else:
                                                 m1    = self.Sims.GetSimField(field1, n)
                                         betaj = self.Map2Betaj(m1, k, mask=mask, noise=noise,fsky_approx=fsky_approx, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
@@ -581,9 +582,9 @@ class NeedAnalysis(object):
                         elif (field2 is not None) and (fix_field is None): # Field1 x Field2
                                 for n in range(myid, nsim, nproc): 
                                         print(f'Simulation number:{n}')
-                                        if EuclidSims==True:
-                                                m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
-                                                m2    = self.Sims.GetSimField_Euclid(field2, n, self.lmax)
+                                        if self.EuclidSims==True:
+                                                m1    = self.Sims.GetSimField_Euclid(field1,nbins, n, self.lmax)
+                                                m2    = self.Sims.GetSimField_Euclid(field2,nbins, n, self.lmax, noise=True)
                                                 print(f'field1={field1}, field2={field2}')
                                         else:
                                                 m1    = self.Sims.GetSimField(field1, n)
@@ -594,8 +595,8 @@ class NeedAnalysis(object):
                                         k += 1
                         elif (field2 is None) and (fix_field is not None): # Field1 x Fix_field (Null-test)
                                 for n in range(myid, nsim, nproc): 
-                                        if EuclidSims==True:
-                                                m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
+                                        if self.EuclidSims==True:
+                                                m1    = self.Sims.GetSimField_Euclid(field1, nbins,n, self.lmax)
                                         else:
                                                 m1    = self.Sims.GetSimField(field1, n)
                                         betaj = self.Map2Betaj(m1, k, map2=fix_field, mask=mask, noise=noise,fsky_approx=fsky_approx, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting, nsim=nsim)
@@ -622,7 +623,7 @@ class NeedAnalysis(object):
                 #print('esco da questa funzione?')
                 return betaj_sims_tot
 
-        def GetCovMatrixFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, fname_sims=None):
+        def GetCovMatrixFromMaps(self, field1, nsim, nbins,field2=None, fix_field=None, mask=None, fname=None, fname_sims=None):
                 """
                 Evaluates covariance (and correlation) matrix for simulated maps of a given field. 
 
@@ -666,7 +667,7 @@ class NeedAnalysis(object):
 
                 print("...evaluating Covariance Matrix...")
 
-                betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask=None, fname=fname_sims)
+                betaj_sims = self.GetBetajSimsFromMaps(field1, nsim,nbins, field2=field2, fix_field=fix_field, mask=None, fname=fname_sims)
                 cov_betaj  = np.cov(betaj_sims.T) 
                 #print('fin qui ci sono')
                    
@@ -733,7 +734,7 @@ class NeedAnalysis(object):
 
                 #return Djk
 
-        def GetBetajMeanFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, fname_sims=None):
+        def GetBetajMeanFromMaps(self, field1, nsim, nbins,field2=None, fix_field=None, mask=None, fname=None, fname_sims=None):
                 """
                 Evaluates *mean* needlet (auto- or cross-) power spectrum for simulated maps of a given field. 
 
@@ -771,7 +772,7 @@ class NeedAnalysis(object):
                         # print("...simulations beta_jk's " + fname + " not found...")
                         print("...evaluating <beta_j>_MC...")
 
-                        betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask=mask, fname=fname_sims)
+                        betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, nbins,field2=field2, fix_field=fix_field, mask=mask, fname=fname_sims)
                         betaj_mean = np.mean(betaj_sims, axis=0)
 
                         if fname is not None:
