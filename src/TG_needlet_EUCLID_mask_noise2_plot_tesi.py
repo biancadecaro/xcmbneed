@@ -283,12 +283,12 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 ax = fig.add_subplot(1, 1, 1)
 
 ax.axhline(ls='--', color='grey')
-ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mean[1:jmax+1] /betatg[1:jmax+1]-1), yerr=delta_noise[1:jmax+1]/(np.sqrt(nsim)*betatg[1:jmax+1]),  fmt='o', ms=5, label=r'FULL SKY Error of the mean of the simulations')
-ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mean[1:jmax+1] /betatg[1:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT)[1:jmax+1])/(np.sqrt(nsim)*betatg[1:jmax+1]),color='#2b7bbc',  fmt='o', ms=5, label=r'FULL SKY Error of simulations')
+#ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mean[1:jmax+1] /betatg[1:jmax+1]-1), yerr=delta_noise[1:jmax+1]/(np.sqrt(nsim)*betatg[1:jmax+1]),  fmt='o', ms=5, label=r'FULL SKY Variance on the mean from theory')
+#ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mean[1:jmax+1] /betatg[1:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT)[1:jmax+1])/(np.sqrt(nsim)*betatg[1:jmax+1]),color='#2b7bbc',  fmt='o', ms=5, label=r'FULL SKY Variance on the mean from simulations')
 
 
-ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(delta_gammaj)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),  fmt='o', ms=5, label=r'Error of the mean of the simulations')
-ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),  fmt='o', ms=5, label=r'Error of simulations')
+ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(delta_gammaj)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),  fmt='o', ms=5, label=r'Variance on the mean from theory')
+ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),color='#2b7bbc',  fmt='o', ms=5, label=r'Variance on the mean from simulations')
 
 ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -298,9 +298,9 @@ ax.set_ylabel(r'$\langle \tilde{\Gamma}_j^{TG} \rangle/\tilde{\Gamma}_j^{TG, th}
 #ax.set_ylim([-0.3,1.3])
 
 fig.tight_layout()
-plt.savefig(out_dir+f'gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
-#plt.savefig(f'plot_tesi/Euclid/gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
-#plt.savefig(f'plot_tesi/Euclid/gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
+#plt.savefig(out_dir+f'gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+plt.savefig(f'plot_tesi/Euclid/gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
+plt.savefig(f'plot_tesi/Euclid/gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
 
 ### SPECTRUM  CUT SKY
 
