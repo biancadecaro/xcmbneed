@@ -668,6 +668,7 @@ class NeedAnalysis(object):
                 print("...evaluating Covariance Matrix...")
 
                 betaj_sims = self.GetBetajSimsFromMaps(field1, nsim,nbins, field2=field2, fix_field=fix_field, mask=None, fname=fname_sims)
+                #betaj_sims2 = self.GetBetajSimsFromMaps(field1, nsim,nbins, field2=field3, fix_field=fix_field, mask=None, fname=fname_sims)
                 cov_betaj  = np.cov(betaj_sims.T) 
                 #print('fin qui ci sono')
                    
