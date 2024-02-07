@@ -287,8 +287,8 @@ ax.axhline(ls='--', color='grey')
 #ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mean[1:jmax+1] /betatg[1:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT)[1:jmax+1])/(np.sqrt(nsim)*betatg[1:jmax+1]),color='#2b7bbc',  fmt='o', ms=5, label=r'FULL SKY Variance on the mean from simulations')
 
 
-ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(delta_gammaj)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),  fmt='o', ms=5, label=r'Variance on the mean from theory')
-ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),color='#2b7bbc',  fmt='o', ms=5, label=r'Variance on the mean from simulations')
+ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(delta_gammaj)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),  fmt='o', ms=5, label=r'Variance of the mean from theory')
+ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),color='#2b7bbc',  fmt='o', ms=5, label=r'Variance of the mean from simulations')
 
 ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
