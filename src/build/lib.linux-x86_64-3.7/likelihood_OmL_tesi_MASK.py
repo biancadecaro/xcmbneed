@@ -48,28 +48,32 @@ print(B)
 idx = (np.abs(OmL - 0.6847)).argmin()
 print(idx, OmL[idx])
 
-beta_oml = np.array([np.loadtxt(f'/ehome/bdecaro/xcmbneed/src/output_needlet_TG_OmL/Grid_spectra_30_planck_2_lmin0/TGsims_theoretical_OmL{oml}/beta_TS_galS_theoretical_OmL{oml}_B1.7422102429630426.dat') for oml in OmL])[:,1:(jmax)]
-print(f'shape beta_oml = {beta_oml.shape}')
+#beta_oml = np.array([np.loadtxt(f'/ehome/bdecaro/xcmbneed/src/output_needlet_TG_OmL/Grid_spectra_30_planck_2_lmin0/TGsims_theoretical_OmL{oml}/beta_TS_galS_theoretical_OmL{oml}_B1.7422102429630426.dat') for oml in OmL])[:,1:(jmax)]
+gamma_oml = np.array([np.loadtxt(f'/ehome/bdecaro/xcmbneed/src/output_needlet_TG_OmL/Grid_spectra_30_Gammaj_Planck/TGsims_theoretical_OmL{oml}/beta_TS_galS_theoretical_OmL{oml}_B1.7422102429630426.dat') for oml in OmL])[:,1:(jmax)]
+print(f'shape beta_oml = {gamma_oml.shape}')
 
-cov_matrix = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi/cov_TS_galT_jmax12_B = 1.74 $_nside512_mask.dat')[1:(jmax),1:(jmax)]
+plt.plot(gamma_oml[21])
+plt.savefig('gamma_oml.png')
+
+cov_matrix = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi_NO_fsky_approx/cov_TS_galT_jmax12_B = 1.74 $_nside512_mask.dat')[1:(jmax),1:(jmax)]
 print(f'shape cov = {cov_matrix.shape}')
 
 icov=np.linalg.inv(cov_matrix)
 
 
-beta_fid_array = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi/betaj_sims_TS_galT_jmax12_B_1.7422102429630426_nside512_fsky_0.7794118722279867.dat')[:,1:(jmax)]
+beta_fid_array = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi_NO_fsky_approx/betaj_sims_TS_galT_jmax12_B_1.7422102429630426_nside512_fsky_0.7794118722279867.dat')[:,1:(jmax)]
 print(f'beta_fid={beta_fid_array.shape}')
 num_sim = 456
 
 beta_fid =  beta_fid_array[num_sim] #np.mean(beta_fid_array, axis=0)
 
 
-delta = np.array([np.subtract(beta_fid, beta_oml[p]) for p in range(len(OmL))])#beta_fid-beta_oml#
+delta = np.array([np.subtract(beta_fid, gamma_oml[p]) for p in range(len(OmL))])#beta_fid-beta_oml#
 
 
 nj=cov_matrix.shape[1]
 
-chi_squared = liklh.Calculate_chi2_grid(beta_fid=beta_fid, beta_grid=beta_oml, cov=cov_matrix, jmax=jmax, params = OmL )
+chi_squared = liklh.Calculate_chi2_grid(beta_fid=beta_fid, beta_grid=gamma_oml, cov=cov_matrix, jmax=jmax, params = OmL )
 
 
 perc = chi2.cdf(chi_squared, nj)
@@ -148,7 +152,7 @@ chi2_OmL =np.zeros((nsim,len(OmL)))
 post_OmL= np.zeros((nsim,len(OmL)))
 OmL_min = np.zeros(nsim)
 for n in range(nsim):
-    chi2_OmL[n] = liklh.Calculate_chi2_grid(beta_fid=beta_fid_array[n], beta_grid=beta_oml, cov=cov_matrix, jmax=jmax, params = OmL )
+    chi2_OmL[n] = liklh.Calculate_chi2_grid(beta_fid=beta_fid_array[n], beta_grid=gamma_oml, cov=cov_matrix, jmax=jmax, params = OmL )
     post_OmL[n] = liklh.Likelihood(chi2_OmL[n])
     index,  = np.where(chi2_OmL[n]==chi2_OmL[n].min())
     OmL_min[n] = OmL[index]

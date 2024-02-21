@@ -32,7 +32,7 @@ plt.rcParams['legend.fontsize']  = 'large'
 plt.rcParams['legend.frameon']  = False
 plt.rcParams['axes.labelsize'] = 'large'
 plt.rcParams['axes.titlesize'] = 'large'
-rcParams["errorbar.capsize"] = 15
+plt.rcParams["errorbar.capsize"] = 15
 #
 plt.rcParams['xtick.major.width'] = 1
 plt.rcParams['ytick.major.width'] = 1
@@ -55,19 +55,19 @@ nside = simparams['nside']
 
 jmax = 12
 lmax = 256
-nsim = 100
+nsim = 500
 
 
 # Paths
-fname_xcspectra = '/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial.dat'
-sims_dir        = f'/ehome/bdecaro/xcmbneed/src/sims/Euclid_sims/TG_sims_{nside}/'
-out_dir         = f'output_needlet_TG/EUCLID/Noise/TG_{nside}_nsim{nsim}/'
+fname_xcspectra = '/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial_lmin0.dat'
+sims_dir        = f'/ehome/bdecaro/xcmbneed/src/sims/Euclid_sims_Marina/NSIDE{nside}/'
+out_dir         = f'output_needlet_TG/EUCLID/Noise/TG_{nside}_nsim{nsim}_Marina/'
 path_inpainting = 'inpainting/inpainting.py'
-cov_dir 		= f'covariance/EUCLID/Noise/TG_{nside}_nsim{nsim}/'
+cov_dir 		= f'covariance/EUCLID/Noise/TG_{nside}_nsim{nsim}_Marina/'
 if not os.path.exists(cov_dir):
         os.makedirs(cov_dir)
 
-cl_theory = np.loadtxt('/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial.dat')
+cl_theory = np.loadtxt('/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial_lmin0.dat')
 ell_theory = cl_theory[0]
 cl_theory_tt = cl_theory[1]
 cl_theory_tg = cl_theory[2]
@@ -77,12 +77,14 @@ mask = hp.read_map(f'/ehome/bdecaro/xcmbneed/src/mask/EUCLID/mask_planck_comm_20
 fsky = np.mean(mask)
 
 # Loading theory spectra
-xcspectra = spectra.XCSpectraFile(fname_xcspectra,  nltt = None, WantTG = True)
-
+xcspectra = spectra.XCSpectraFile(fname_xcspectra,   WantTG = True)
+xcspectra.cltg = cl_theory_tg
+xcspectra.cltt = cl_theory_tt
+xcspectra.clgg = cl_theory_gg
 
 # Simulations class
 simulations = sims.KGsimulations(xcspectra, sims_dir, simparams, WantTG = True)
-simulations.Run(nsim, WantTG = True)
+simulations.Run(nsim, WantTG = True, EuclidSims=True)
 
 # Needlet Analysis
 myanalysis = analysis.NeedAnalysis(jmax, lmax, out_dir, simulations)
@@ -95,32 +97,34 @@ print("...computing Betajs for simulations...")
 fname_betaj_sims_TS_galT      = f'betaj_sims_TS_galT_jmax{jmax}_B_{myanalysis.B:0.2f}_nside{nside}.dat'
 
 
-betaj_sims_TS_galT = myanalysis.GetBetajSimsFromMaps('TS', nsim, field2='galT', fname=fname_betaj_sims_TS_galT)
+betaj_sims_TS_galT = myanalysis.GetBetajSimsFromMaps('T', nsim, field2='g1noise', fname=fname_betaj_sims_TS_galT, EuclidSims=True)
 
 # Covariances
 print("...computing Cov Matrices...")
 fname_cov_TS_galT      = f'cov_TS_galT_jmax{jmax}_B_{myanalysis.B:0.2f}_nside{nside}.dat'
 
-cov_TS_galT, corr_TS_galT          = myanalysis.GetCovMatrixFromMaps(field1='TS', nsim=nsim, field2='galT', fname=fname_cov_TS_galT, fname_sims=fname_betaj_sims_TS_galT)
+cov_TS_galT, corr_TS_galT          = myanalysis.GetCovMatrixFromMaps(field1='T', nsim=nsim, field2='g1noise', fname=fname_cov_TS_galT, fname_sims=fname_betaj_sims_TS_galT)
 
 print("...done...")
 
 # <Beta_j>_MC
-betaj_TS_galT_mean    = myanalysis.GetBetajMeanFromMaps('TS', nsim, field2='galT', fname_sims=fname_betaj_sims_TS_galT)
+betaj_TS_galT_mean    = myanalysis.GetBetajMeanFromMaps('T', nsim, field2='g1noise', fname_sims=fname_betaj_sims_TS_galT)
 
 
 # Beta_j sims
 
-num_sim_1 = 45
-num_sim_2 = 12
+[num_sim_1, num_sim_2] = np.random.choice(np.arange(nsim),2 )
 beta_j_sim_1_T = betaj_sims_TS_galT[num_sim_1,:]
 beta_j_sim_2_T = betaj_sims_TS_galT[num_sim_2,:]
 
 # Beta_j THEORY
 
-betatg    = need_theory.cl2betaj(jmax=jmax, cl=xcspectra.cltg)
+betatg    = need_theory.cl2betaj(jmax=jmax, cl=cl_theory_tg)
 beta_norm = need_theory.cl2betaj(jmax=jmax, cl=np.ones(xcspectra.cltg.size))
-delta = need_theory.delta_beta_j(jmax=jmax, cltg=xcspectra.cltg, cltt=xcspectra.cltt, clgg=xcspectra.clg1g1)
+delta = need_theory.delta_beta_j(jmax=jmax, cltg=cl_theory_tg, cltt=cl_theory_tt, clgg=cl_theory_gg)
+
+np.savetxt(out_dir+f'theory_beta_jmax{jmax}_D{myanalysis.B:0.2f}_lmax{lmax}.dat', betatg )
+np.savetxt(out_dir+f'theory_variance_jmax{jmax}_D{myanalysis.B:0.2f}_lmax{lmax}.dat' , delta)
 
 ########################################################################################################################
 
@@ -158,7 +162,7 @@ ax1.set_xlabel(r'j')
 ax1.legend()
 
 fig.tight_layout()
-plt.savefig(out_dir+f'total-signal_betaj_mean_betaj_sim_plot_nsim_{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}.png')
+plt.savefig(out_dir+f'total-signal_betaj_mean_betaj_sim_plot_jmax_{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}.png')
 
 # Theory + Sims Needlet power spectra - nel caso di mask devo moltiplicare per fsky il cl
 

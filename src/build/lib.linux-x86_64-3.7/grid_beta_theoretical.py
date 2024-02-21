@@ -28,10 +28,10 @@ cov_dir         = []
 for om in OmL:
     if not os.path.exists(f'output_needlet_TG_OmL/Grid_spectra_{len(OmL)}_planck_2_lmin0/TGsims_theoretical_OmL{om}/'):
         os.makedirs(f'output_needlet_TG_OmL/Grid_spectra_{len(OmL)}_planck_2_lmin0/TGsims_theoretical_OmL{om}/')
-    fname_xcspectra.append(f'spectra/Grid_spectra_{len(OmL)}_planck/CAMBSpectra_OmL{om}_lmin0.dat')#.replace('.', '') np.chararray(len(OmL))Grid_spectra_{len(OmL)}s
+    fname_xcspectra.append(f'spectra/Grid_spectra_{len(OmL)}_planck_1/CAMBSpectra_OmL{om}_lmin0.dat')#.replace('.', '') np.chararray(len(OmL))Grid_spectra_{len(OmL)}s
     out_dir.append(f'output_needlet_TG_OmL/Grid_spectra_{len(OmL)}_planck_2_lmin0/TGsims_theoretical_OmL{om}/' )#np.chararray(len(OmL))
 
-dir_spectra_fid=f'spectra/Grid_spectra_{len(OmL)}_planck/CAMBSpectra_OmL_fiducial_lmin0.dat'
+dir_spectra_fid=f'spectra/Grid_spectra_{len(OmL)}_planck_1/CAMBSpectra_OmL_fiducial_lmin0.dat'
 dir_out_fid = f'output_needlet_TG_OmL/Grid_spectra_{len(OmL)}_planck_2_lmin0/'
 dir= {'fname_xcspectra':fname_xcspectra, 'out_dir':out_dir}
 
@@ -42,7 +42,7 @@ print(dir['fname_xcspectra'])
 betaj_TS_galS_grid, delta__TS_galS_grid = grid.Compute_beta_grid_theoretical(OmL, dir, B,lmax, jmax)
 
 
-spectra_fid = spectra.XCSpectraFile(clfname= dir_spectra_fid, nltt=None, WantTG = True)  
+spectra_fid = spectra.XCSpectraFile(clfname= dir_spectra_fid,  WantTG = True)  
 need_theory=spectra.NeedletTheory(B)
 
 betatg_fid   = need_theory.cl2betaj(jmax=jmax, cl=spectra_fid.cltg)

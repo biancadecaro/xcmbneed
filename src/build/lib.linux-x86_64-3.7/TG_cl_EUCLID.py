@@ -47,7 +47,7 @@ simparams = {   'nside'   : 128 ,
                 'pixwin'  : False}
 nside=simparams['nside']
 lmax = 256
-nsim = 500
+nsim = 1000
 delta_ell = 1
 
 mask = hp.read_map(f'/ehome/bdecaro/xcmbneed/src/mask/EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits')
@@ -55,21 +55,21 @@ fsky = np.mean(mask)
 print(fsky)
 
 # Paths
-fname_xcspectra = '/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial.dat'
-sims_dir        = f'/ehome/bdecaro/xcmbneed/src/sims/Euclid_sims/TG_sims_{nside}/'
-out_dir         = f'output_Cl_TG/EUCLID/Mask_noise/TG_{nside}_fsky{fsky:.2f}_nsim{nsim}/'
+fname_xcspectra = '/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial_lmin0.dat'
+sims_dir        = f'/ehome/bdecaro/xcmbneed/src/sims/Euclid_sims_Marina/NSIDE{nside}/'
+out_dir         = f'output_Cl_TG/EUCLID/Mask_noise/TG_{nside}_fsky{fsky:.2f}_nsim{nsim}_lmin0/'
 path_inpainting = 'inpainting/inpainting.py'
-cov_dir 		= f'covariance/Cl/EUCLID/Mask_noise/TG_{nside}/'
+cov_dir 		= f'covariance/Cl/EUCLID/Mask_noise/TG_{nside}_Marina/'
 if not os.path.exists(cov_dir):
         os.makedirs(cov_dir)
 
 
 # Loading theory spectra
-xcspectra = spectra.XCSpectraFile(fname_xcspectra, nltt = None,WantTG = True)
+xcspectra = spectra.XCSpectraFile(fname_xcspectra, WantTG = True)
 
 # Simulations class
 simulations = sims.KGsimulations(xcspectra, sims_dir, simparams, WantTG = True)
-simulations.Run(nsim, WantTG = True)
+simulations.Run(nsim, WantTG = True, EuclidSims=True)
 
 # Cl Analysis
 
@@ -83,8 +83,8 @@ print("...computing Betajs for simulations...")
 fname_cl_sims_TS_galT      = f'cl_sims_TS_galT_lmax{lmax}_nside{nside}.dat'
 fname_cl_sims_TS_galT_mask      = f'cl_sims_TS_galT_lmax{lmax}_nside{nside}_fsky{fsky}.dat'
 
-cl_TS_galT = myanalysis.GetClSimsFromMaps(field1='TS', nsim=nsim, field2='galT', fname=fname_cl_sims_TS_galT)
-cl_TS_galT_mask = myanalysis_mask.GetClSimsFromMaps(field1='TS', nsim=nsim, field2='galT', fname=fname_cl_sims_TS_galT_mask)
+cl_TS_galT = myanalysis.GetClSimsFromMaps(field1='T', nsim=nsim, field2='g1noise', fname=fname_cl_sims_TS_galT, EuclidSims=True)
+cl_TS_galT_mask = myanalysis_mask.GetClSimsFromMaps(field1='T', nsim=nsim, field2='g1noise', fname=fname_cl_sims_TS_galT_mask, EuclidSims=True)
 
 cl_TS_galT_mean =np.mean(cl_TS_galT, axis=0)
 cl_TS_galT_mask_mean=np.mean(cl_TS_galT_mask, axis=0)
@@ -95,8 +95,10 @@ print("...computing Cov Matrices...")
 fname_cov_TS_galT      = f'cov_TS_galT_lmax{lmax}_nside{nside}.dat'
 fname_cov_TS_galT_mask      = f'cov_TS_galT_lmax{lmax}_nside{nside}_fsky{fsky}.dat'
 
-cov_TS_galT, corr_TS_galT           = myanalysis.GetCovMatrixFromMaps(field1='TS', nsim=nsim, field2='galT', fname=fname_cov_TS_galT, fname_sims=fname_cl_sims_TS_galT)
-cov_TS_galT_mask, corr_TS_galT_mask           = myanalysis_mask.GetCovMatrixFromMaps(field1='TS', nsim=nsim, field2='galT', fname=fname_cov_TS_galT_mask, fname_sims=fname_cl_sims_TS_galT_mask)
+cov_TS_galT, corr_TS_galT           = myanalysis.GetCovMatrixFromMaps(field1='T', nsim=nsim, field2='g1noise', fname=fname_cov_TS_galT, fname_sims=fname_cl_sims_TS_galT)
+cov_TS_galT_mask, corr_TS_galT_mask           = myanalysis_mask.GetCovMatrixFromMaps(field1='T', nsim=nsim, field2='g1noise', fname=fname_cov_TS_galT_mask, fname_sims=fname_cl_sims_TS_galT_mask)
+
+print(cl_TS_galT_mean)
 
 print("...done...")
 
@@ -121,22 +123,25 @@ print("...here come the plots...")
 #plt.savefig(cov_dir+f'corr_TS_galT_lmax{lmax}_nsim{nsim}_nside{nside}.png')
 
 # Cls 
-cltg_theory = xcspectra.cltg[:lmax-1]
-ell_theory = xcspectra.ell[:lmax-1]
+cl_theory = np.loadtxt('/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial_lmin0.dat')
+ell_theory = cl_theory[0]
+cl_theory_tt = cl_theory[1]
+cl_theory_tg = cl_theory[2]
+cl_theory_gg = cl_theory[3]
 
-
-print(f'ratio cl mean  / cl theory = {np.mean(cl_TS_galT_mean/cltg_theory)}')
-print(f'ratio cl mean mask / cl theory = {np.mean(cl_TS_galT_mask_mean/cltg_theory)}')
-print(f'ratio cl mean mask - cl mean = {np.mean(cl_TS_galT_mask_mean-cl_TS_galT_mean)}')
-
-print(f'ratio cl mean mask  = {np.mean(cl_TS_galT_mask_mean)}')
-print(f'ratio cl mean  = {np.mean(cl_TS_galT_mean)}')
+print(ell_theory)
+#print(f'ratio cl mean  / cl theory = {np.mean(cl_TS_galT_mean/cl_theory_tg[:lmax-1])}')
+#print(f'ratio cl mean mask / cl theory = {np.mean(cl_TS_galT_mask_mean/cl_theory_tg[:lmax-1])}')
+#print(f'ratio cl mean mask - cl mean = {np.mean(cl_TS_galT_mask_mean-cl_TS_galT_mean)}')
+#
+#print(f'ratio cl mean mask  = {np.mean(cl_TS_galT_mask_mean)}')
+#print(f'ratio cl mean  = {np.mean(cl_TS_galT_mean)}')
 
 fig = plt.figure(figsize=(25,10))
 ax  = fig.add_subplot(1, 2, 1)
 
-ax.plot(ell_theory,cl_TS_galT_mean/cltg_theory,'o' ,color='firebrick' , label = 'Full sky')
-ax.plot(ell_theory,cl_TS_galT_mask_mean/cltg_theory,'o', color='seagreen' ,label = 'Masked')
+ax.plot(ell_theory[2:lmax+1],cl_TS_galT_mean/cl_theory_tg[2:lmax+1],'o' ,color='firebrick' , label = 'Full sky')
+ax.plot(ell_theory[2:lmax+1],cl_TS_galT_mask_mean/cl_theory_tg[2:lmax+1],'o', color='seagreen' ,label = 'Masked')
 ax.axhline(y=fsky,ls='--', color='k')
 ax.set_xlabel(r'$\ell$')
 ax.set_ylabel(r'$\langle C_{\ell}^{Tgal} \rangle /C_{\ell}^{Tgal, th}$')
@@ -155,10 +160,10 @@ ax  = fig.add_subplot(1, 2, 1)
 cl_theory_binned=np.array([xcspectra.cltg[l-1] for l in lbins])
 
 
-ax.plot(ell_theory, ell_theory*(ell_theory+1)/(2*np.pi)*cltg_theory, color='k', lw=2, label='Theory')
+ax.plot(ell_theory[2:lmax+1], ell_theory[2:lmax+1]*(ell_theory[2:lmax+1]+1)/(2*np.pi)*cl_theory_tg[2:lmax+1], color='k', lw=2, label='Theory')
 #ax.plot(lbins,(lbins)*(lbins+1)/(2*np.pi)*kgb, 'ko',label='Theory')
 #ax.errorbar(lbins-5, np.mean(cl_TS_galT, axis=0), yerr=np.diag(cov_TS_galT/nsim)**.5, fmt='o', color='seagreen', capsize=0, label=r'$T^S \times gal^T$')
-ax.errorbar(ell_bin, (ell_bin)*(ell_bin+1)/(2*np.pi)*cl_TS_galT_mean, yerr=np.diag(((ell_bin*(ell_bin+1)/(2*np.pi))**2)*cov_TS_galT/nsim)**.5, fmt='o', color='firebrick', capsize=0, label=r'$T^S \times gal^T$')
+ax.errorbar(ell_theory[2:lmax+1], ell_theory[2:lmax+1]*(ell_theory[2:lmax+1]+1)/(2*np.pi)*cl_TS_galT_mean, yerr=np.diag(((ell_bin*(ell_bin+1)/(2*np.pi))**2)*cov_TS_galT/nsim)**.5, fmt='o', color='firebrick', capsize=0, label=r'$T^S \times gal^T$')
 #ax.set_xticks(xcspectra.ell[:lmax])
 #ax.set_xlim(0,20)
 ax.set_xlabel(r'$\ell$')
@@ -176,8 +181,8 @@ ax = fig.add_subplot(1, 1, 1)
 kgb = myanalysis.bin_spectra(xcspectra.cltg)
 
 ax.axhline(ls='--', color='k')
-ax.errorbar(xcspectra.ell[:lmax-1], (cl_TS_galT_mean-cltg_theory)/cltg_theory, yerr=np.sqrt(np.diag(cov_TS_galT))/(np.sqrt(nsim)*cltg_theory), color='firebrick', fmt='o', capsize=0, label=r'$T^S \times gal^T$')
-ax.errorbar(xcspectra.ell[:lmax-1], (cl_TS_galT_mask_mean-cltg_theory)/cltg_theory, yerr=np.sqrt(np.diag(cov_TS_galT_mask))/(np.sqrt(nsim)*cltg_theory), color='seagreen', fmt='o', capsize=0, label=r'$T^S \times gal^T$ Masked')
+ax.errorbar(ell_theory[2:lmax+1], (cl_TS_galT_mean-cl_theory_tg[2:lmax+1])/cl_theory_tg[2:lmax+1], yerr=np.sqrt(np.diag(cov_TS_galT))/(np.sqrt(nsim)*cl_theory_tg[2:lmax+1]), color='firebrick', fmt='o', capsize=0, label=r'$T^S \times gal^T$')
+ax.errorbar(ell_theory[2:lmax+1], (cl_TS_galT_mask_mean-cl_theory_tg[2:lmax+1])/cl_theory_tg[2:lmax+1], yerr=np.sqrt(np.diag(cov_TS_galT_mask))/(np.sqrt(nsim)*cl_theory_tg[2:lmax+1]), color='seagreen', fmt='o', capsize=0, label=r'$T^S \times gal^T$ Masked')
 
 #ax.errorbar(lbins, (np.mean(cl_TS_galT_mask, axis=0)-kgb)/kgb, yerr=np.sqrt(np.diag(cov_TS_galT_mask))/(np.sqrt(nsim)*kgb), color='seagreen', fmt='o', capsize=0, label=r'$T^S \times gal^T$ Masked')
 

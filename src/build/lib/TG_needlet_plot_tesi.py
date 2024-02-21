@@ -179,6 +179,7 @@ ax.errorbar(myanalysis.jvec[1:jmax], betaj_TS_galS_mean[1:jmax], yerr=np.sqrt(np
 ax.errorbar(myanalysis.jvec[1:jmax], betaj_TS_galS_mean[1:jmax], yerr=np.sqrt(np.diag(cov_TS_galS)[1:jmax]) ,color='grey',fmt='o',ms=0,capthick=2, label='Error of simulations')
 
 ax.legend(loc='best')
+ax.set_xticks(myanalysis.jvec[1:jmax])
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
 ax.set_xlabel(r'$j$')
@@ -199,7 +200,9 @@ ax.axhline(ls='--', color='grey')
 ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/betatg[1:jmax], yerr=np.sqrt(np.diag(cov_TS_galS)[1:jmax])/(np.sqrt(nsim)*betatg[1:jmax]), fmt='o',ms=5, label=r'Variance on the mean from simulations')#, label=r'$T^S \times gal^S$, sim cov')
 ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/betatg[1:jmax], yerr=delta[1:jmax]/(np.sqrt(nsim)*betatg[1:jmax]),color='#6d7e3f',  fmt='o',  ms=5,label=r'Variance from theory')
 #print(np.sqrt(np.diag(cov_TS_galS))/(np.sqrt(nsim)*betatg) - delta/(np.sqrt(nsim)*betatg))
+print(100*(betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/betatg[1:jmax])
 
+ax.set_xticks(myanalysis.jvec[1:jmax])
 ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
@@ -221,11 +224,12 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 ax = fig.add_subplot(1, 1, 1)
 
 ax.axhline(ls='--', color='grey')
-ax.plot(myanalysis.jvec[1:jmax+1], (betaj_TS_galS_mean[1:jmax+1] -betatg[1:jmax+1])/(delta[1:jmax+1]/np.sqrt(nsim)),'o', ms=10,color='#2b7bbc')#, label=r'$T^S \times gal^S$, sim cov')
+ax.plot(myanalysis.jvec[1:jmax], (betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/(delta[1:jmax]/np.sqrt(nsim)),'o', ms=10,color='#2b7bbc')#, label=r'$T^S \times gal^S$, sim cov')
 #print(np.sqrt(np.diag(cov_TS_galS))/(np.sqrt(nsim)*betatg) - delta/(np.sqrt(nsim)*betatg))
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
+ax.set_xticks(myanalysis.jvec[1:jmax])
 ax.set_xlabel(r'$j$', fontsize=22)
 ax.set_ylabel(r'$\Delta \beta_j^{\mathrm{TG}} / \sigma $', fontsize=22)
 ax.set_ylim([-2.0,2.0])
@@ -237,26 +241,42 @@ plt.savefig(f'plot_tesi/PLANCK_VALIDATION_diff_betaj_mean_theory_over_sigma_jmax
 ######################################################################################
 ############################## SIGNAL TO NOISE RATIO #################################
 def S_2_N(beta, cov_matrix):
-
+    s_n = np.zeros(len(beta))
     cov_inv = np.linalg.inv(cov_matrix)
-    s_n = 0
     temp = np.zeros(len(cov_matrix[0]))
     for i in range(len(cov_matrix[0])):
         for j in range(len(beta)):
+            #s_n[i] += np.dot(beta[i], np.dot(cov_inv[i, j], beta[j]))
             temp[i] += cov_inv[i][j]*beta[j]
-        s_n += beta[i].T*temp[i]
-    return np.sqrt(s_n)
+        s_n[i] = beta[i].T*temp[i]
+    return s_n
 
 def S_2_N_th(beta, variance):
     s_n = np.divide((beta)**2, variance)
-    return np.sqrt(s_n)
+    return s_n
+
+def S_2_N_cum(s2n, jmax):
+    s2n_cum = np.zeros(jmax.shape[0])
+    for j,jj in enumerate(jmax):
+        for ijj in range(1,jj):
+            s2n_cum[j] +=s2n[ijj]
+        s2n_cum[j]= np.sqrt(s2n_cum[j])      
+    return s2n_cum
+
+jvec = np.arange(0,jmax+1)
 
 s2n_theory=S_2_N_th(betatg, delta**2)
 s2n_mean_sim=S_2_N_th(betaj_TS_galS_mean, delta**2)
 
+s2n_mean_sim_cov=S_2_N(betaj_TS_galS_mean, cov_TS_galS)
+print(s2n_mean_sim_cov)
 
-print(np.where(s2n_theory==s2n_theory.max()),np.where(betatg==betatg.max()) )
-print(betaj_TS_galS_mean)
+s2n_cum_theory = S_2_N_cum(s2n_theory, jvec)
+s2n_cum_sim_cov = S_2_N_cum(s2n_mean_sim_cov, jvec)
+s2n_cum_sim = S_2_N_cum(s2n_mean_sim, jvec)
+#print(np.where(s2n_theory==s2n_theory.max()),np.where(betatg==betatg.max()) )
+#print(betaj_TS_galS_mean)
+print(f's2n_cum_theory={s2n_cum_theory}', f's2n_cum_sim={s2n_cum_sim}', f's2n_cum_sim_cov={s2n_cum_sim_cov}')
 
 fig = plt.figure(figsize=(17,10))
 
@@ -264,10 +284,10 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 
-ax.plot(myanalysis.jvec, s2n_theory, color='#2b7bbc',marker = 'o',ms=10, label='Theory')
-ax.plot(myanalysis.jvec, s2n_mean_sim,marker = 'o',ms=10, label='Simulations')
+ax.plot(myanalysis.jvec[1:jmax], s2n_theory[1:jmax], color='#2b7bbc',marker = 'o',ms=10, label='Theory')
+ax.plot(myanalysis.jvec[1:jmax], s2n_mean_sim[1:jmax],marker = 'o',ms=10, label='Simulations')
 
-
+ax.set_xticks(myanalysis.jvec[1:jmax])
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
 plt.legend()

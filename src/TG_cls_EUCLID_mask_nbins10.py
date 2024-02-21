@@ -69,7 +69,7 @@ nbins = 10
 # Paths
 fname_xcspectra = '/ehome/bdecaro/xcmbneed/src/spectra/inifiles/euclid_fiducials_tomography_lmin0.txt' 
 sims_dir        = f'/ehome/bdecaro/xcmbneed/src/sims/Euclid_sims_Marina/NSIDE128_TOMOGRAPHY/'
-out_dir         = f'output_cls_TG/EUCLID/Tomography/TG_{nside}_lmax{lmax}_nbins{nbins}_nsim{nsim}/'
+out_dir         = f'output_Cl_TG/EUCLID/Tomography/TG_{nside}_lmax{lmax}_nbins{nbins}_nsim{nsim}/'
 path_inpainting = 'inpainting/inpainting.py'
 cov_dir 		= out_dir+f'covariance/'
 if not os.path.exists(cov_dir):
@@ -86,7 +86,34 @@ wl = hp.anafast(mask, lmax=lmax)
 
 # Loading theory spectra
 xcspectra = spectra.XCSpectraFile(fname_xcspectra, WantTG = True, nbins=10)
-print(xcspectra.cltt)
+# Loading theory spectra
+xcspectra = spectra.XCSpectraFile(fname_xcspectra, WantTG = True, nbins=10)
+lmax_negative = []
+
+for ibin in range(nbins):
+    for iibin in range(ibin,nbins):
+        l_negative_l = []
+        for l in xcspectra.ell:
+            if xcspectra.clgg[ibin, iibin][l]<0:
+                l_negative_l.append(l)
+            else:
+                l_negative_l.append(0)
+        lmax_negative.append(max(l_negative_l))
+
+fig = plt.figure(figsize=(17,10))
+for ibin in range(nbins):
+    for iibin in range(ibin,nbins):
+        if True in (xcspectra.clgg[ibin, iibin][l] <0 for l in xcspectra.ell):
+            plt.plot(xcspectra.ell[:max(lmax_negative) ], xcspectra.clgg[ibin, iibin][:max(lmax_negative)], color=sns.color_palette('husl',nbins)[iibin], label=r'G$^{%d}\times$G$^{%d}$'%(ibin+1,iibin+1))
+
+
+plt.xlim([0,max(lmax_negative) ])
+plt.xlabel(r'$\ell$')
+plt.ylabel(r'$C^{\mathrm{TG}}_{\ell}$')
+#plt.ylabel(r'$\dfrac{\ell(\ell+1)}{2\pi}C^{\mathrm{TG}}_{\ell}$')
+plt.legend(ncol=5)
+plt.savefig(out_dir+f'clgg_negative.png')
+
 # Simulations class
 simulations = sims.KGsimulations(xcspectra, sims_dir, simparams,  WantTG = True)
 simulations.Run(nsim, WantTG = True,EuclidSims=True,nbins=10)
@@ -134,7 +161,12 @@ with open(filename_TG_mask+'.pkl', 'rb') as f:
 
 
 cl_TG_mask_mean = cl_TG_mask_sims.mean(axis=0)
+ell_max_sim = cl_TG_mask_mean.shape[1]
+ell_sim = np.arange(ell_max_sim)
+factor= ell_sim*(ell_sim+1)/(2*np.pi)
 
+Mll  = need_theory.get_Mll(wl,lmax)
+pseudo_cl_tg = np.array([np.dot(Mll, xcspectra.cltg[b][:lmax+1]) for b in range(nbins)])
 
 #funzione per covariance
 def covarfn(a, b):
@@ -148,16 +180,48 @@ def covarfn(a, b):
     return (cov / (a.shape[0]-1))
 
 fname_cov_TS_galT_mask = [f'cov_TS_galT_nbins{bin}_lmax{lmax}_nside{nside}_fsky_{fsky}.dat' for bin in range(nbins) ]
-cov_TS_galT_mask = np.zeros((nbins,nbins, (jmax+1),(jmax+1)))
+cov_TS_galT_mask = np.zeros((nbins,nbins, (lmax+1),(lmax+1)))
 # Covariances
 print("...computing Cov Matrices...")
 for bin in range(nbins):
     for bbin in range(nbins):
-        cov_TS_galT_mask[bin,bbin] = covarfn(cl_TG_mask_mean[bin], cl_TG_mask_mean[bbin])
-        print("...saving Covariance Matrix to output " + cov_dir + f'cov_TS_galT_nbins{bin}x{bbin}_lmax{jmax}_nside{nside}.dat' + "...")
-        np.savetxt(cov_dir+f'cov_TS_galT_nbins{bin}x{bbin}_lmax{jmax}_nside{nside}.dat',  cov_TS_galT_mask[bin,bbin], header='Covariance matrix <beta_j1 beta_j2>')
+        #cov_TS_galT_mask[bin,bbin] = covarfn(cl_TG_mask_sims[bin], cl_TG_mask_sims[bbin])
+        #print("...saving Covariance Matrix to output " + cov_dir + f'cov_TS_galT_nbins{bin}x{bbin}_lmax{lmax}_nside{nside}.dat' + "...")
+        #np.savetxt(cov_dir+f'cov_TS_galT_nbins{bin}x{bbin}_lmax{lmax}_nside{nside}.dat',  cov_TS_galT_mask[bin,bbin], header='Covariance matrix <beta_j1 beta_j2>')
+        cov_TS_galT_mask[bin,bbin]=np.loadtxt(cov_dir+f'cov_TS_galT_nbins{bin}x{bbin}_lmax{lmax}_nside{nside}.dat')
 print("...done...")
 
+##prova numpy##
+print(cl_TG_mask_sims.shape)
+cl_TG_mask_sims_newshape=cl_TG_mask_sims.reshape((nsim, nbins*(lmax+1)))
+cov_TS_galT_mask_numpy = np.cov(cl_TG_mask_sims_newshape.T)
+corr_TS_galT_mask_numpy = np.corrcoef(cl_TG_mask_sims_newshape.T)
+print(cov_TS_galT_mask_numpy.shape)
+#cov_TS_galT_mask_numpy=np.reshape(cov_TS_galT_mask_numpy,(nbins, nbins, lmax+1,lmax+1))
+
+
+fig,ax = plt.subplots(1,1,figsize=(17,10))
+#for bin in range(3):
+ax.plot(ell_sim, factor*pseudo_cl_tg[0])
+ax.errorbar(ell_sim, factor*cl_TG_mask_mean[0],yerr=np.sqrt(np.diag(cov_TS_galT_mask_numpy[0:257,0:257]))/np.sqrt(nsim-1), color='#2b7bbc',fmt='o',ms=5,capthick=2)
+plt.savefig(out_dir+'cltg.png')
+#print(np.diag(np.diag(cov_TS_galT_mask_numpy[0:257,0:257])))
+
+cov_mat_tot = cov_TS_galT_mask_numpy + cov_TS_galT_mask_numpy.T - np.diag(cov_TS_galT_mask_numpy.diagonal()) #perchè la normalizzo a 1
+def cov_to_corr(covariance):
+    v = np.sqrt(np.diag(covariance))
+    outer_v = np.outer(v, v)
+    correlation = covariance / outer_v
+    correlation[covariance == 0] = 0
+    return correlation
+
+fig, ax=plt.subplots(1,1, figsize=(17,10))
+plt.suptitle('Covariance from simulation')
+cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
+
+plt1=ax.imshow(cov_to_corr(cov_mat_tot),  cmap='RdBu', vmin=-0.1, vmax=0.1)
+plt.colorbar(plt1, ax=ax)
+plt.savefig(out_dir+'tot_covariance_from_sims.png')
 
 # Theory + Normalization Needlet power spectra
 def cov_pseudo_cl_tomo(cltg,cltt, clgg, wl, lmax, noise_gal_l=None):
@@ -177,18 +241,17 @@ def cov_pseudo_cl_tomo(cltg,cltt, clgg, wl, lmax, noise_gal_l=None):
 
 
     Mll  = need_theory.get_Mll(wl, lmax=lmax)
-    bjl  = np.zeros((jmax+1,lmax+1))
     covll = np.zeros((nbins, nbins,lmax+1,lmax+1))
     for ibin in range(nbins):
         for iibin in range(nbins):
             for ell1 in range(lmax+1):
                 for ell2 in range(lmax+1):
                     covll[ibin,iibin,ell1,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
+                    #if np.isnan(covll[ibin,iibin,ell1,ell2]): 
+                    #    print(f'ibin={ibin}, iibin={iibin}, ell1={ell1}, ell2={ell2}')
     return covll
 
-Mll  = need_theory.get_Mll(wl,lmax)
-pseudo_cl = np.array([np.dot(Mll, xcspectra.cltg[b]) for b in range(nbins)])
-cov_pseudo_cl = cov_pseudo_cl_tomo(xcspectra.cltg,xcspectra.cltt, xcspectra.clgg, wl, lmax, noise_gal_l=simparams['ngal'])
+cov_pseudo_cl = cov_pseudo_cl_tomo(cltg=xcspectra.cltg,cltt=xcspectra.cltt, clgg=xcspectra.clgg,wl= wl, lmax=lmax, noise_gal_l=simparams['ngal'])
 
 
 # Some plots
@@ -200,15 +263,15 @@ ell_vec = np.arange(lmax+1)
 
 fig = plt.figure(figsize=(17,10))
 
-plt.suptitle( r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~n_{\mathrm{bins}} =$'+str(nbins) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+plt.suptitle( r'$\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~n_{\mathrm{bins}} =$'+str(nbins) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
 ax = fig.add_subplot(1, 1, 1)
 
 ax.axhline(ls='--', color='grey')
 for bin in range(1):
     #ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galT_mean[bin][1:jmax] -betatg[bin][1:jmax])/betatg[bin][1:jmax], yerr=np.sqrt(np.diag(cov_TS_galT[bin])[1:jmax])/(np.sqrt(nsim)*betatg[bin][1:jmax]),  fmt='o',  ms=5,label=f'Bin = {bin} No Noise')
-    ax.errorbar(ell_vec, (cl_TG_mask_mean[bin][1:jmax] -pseudo_cl[bin][1:jmax])/pseudo_cl[bin][ell_vec], yerr=np.sqrt(np.diag(cov_TS_galT_mask[bin,bin])[1:jmax])/(np.sqrt(nsim)*pseudo_cl[bin][ell_vec]),  fmt='o',  ms=5,label=f'Bin = {bin}, Shot Noise, variance from sim')
-    ax.errorbar(ell_vec, (cl_TG_mask_mean[bin][1:jmax] -pseudo_cl[bin][1:jmax])/pseudo_cl[bin][ell_vec], yerr=np.sqrt(np.diag(cov_pseudo_cl[bin,bin])[1:jmax])/(np.sqrt(nsim)*pseudo_cl[bin][ell_vec]),  fmt='o',  ms=5,label=f'Bin = {bin}, Shot Noise, analytical variance')
+    ax.errorbar(ell_vec[2:], (cl_TG_mask_mean[bin][2:] -pseudo_cl_tg[bin][2:])/pseudo_cl_tg[bin][2:], yerr=np.sqrt(np.diag(cov_TS_galT_mask[bin,bin])[2:])/(np.sqrt(nsim)*pseudo_cl_tg[bin][2:]),  fmt='o',  ms=5,label=f'Bin = {bin}, Shot Noise, variance from sim')
+    ax.errorbar(ell_vec[2:], (cl_TG_mask_mean[bin][2:] -pseudo_cl_tg[bin][2:])/pseudo_cl_tg[bin][2:], yerr=np.sqrt(np.diag(cov_pseudo_cl[bin,bin])[2:])/(np.sqrt(nsim)*pseudo_cl_tg[bin][2:]),  fmt='o',  ms=5,label=f'Bin = {bin}, Shot Noise, analytical variance')
 
 ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -225,11 +288,11 @@ plt.savefig(out_dir+f'cl_mean_T_gal_lmax{lmax}_nsim{nsim}_nside{nside}_nbins{nbi
 
 fig = plt.figure(figsize=(17,10))
 
-plt.suptitle(r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+plt.suptitle(r'$\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
 ax = fig.add_subplot(1, 1, 1)
 for b in range(nbins):
-    ax.plot(ell_vec, (np.sqrt(np.diag(cov_TS_galT_mask[b,b]))/np.sqrt(np.diag(cov_pseudo_cl[b,b]))-1)*100 ,'o',ms=10, label=f'Bin={b}x{b}')
+    ax.plot(ell_vec[2:], (np.sqrt(np.diag(cov_TS_galT_mask[b,b])[2:])/np.sqrt(np.diag(cov_pseudo_cl[b,b])[2:])-1)*100 ,'o',ms=10, label=f'Bin={b}x{b}')
 ax.axhline(ls='--', c='k', linewidth=0.8)
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -245,11 +308,11 @@ plt.savefig(out_dir+f'diff_cov_cl_theory_T_gal_lmax{lmax}_nsim{nsim}_nside{nside
 
 fig = plt.figure(figsize=(17,10))
 
-plt.suptitle( r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+plt.suptitle( r'$\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
 ax = fig.add_subplot(1, 1, 1)
 for b in range(nbins):
-    ax.plot(ell_vec, (np.sqrt(np.diag(cov_TS_galT_mask[b,b], k=-1))/np.sqrt(np.diag(cov_pseudo_cl[b,b], k=-1))-1)*100 ,'o',ms=10, label=f'Bin={b}')
+    ax.plot(ell_vec[2:lmax], (np.sqrt(np.diag(cov_TS_galT_mask[b,b], k=-1)[2:])/np.sqrt(np.diag(cov_pseudo_cl[b,b], k=-1)[2:])-1)*100 ,'o',ms=10, label=f'Bin={b}')
 ax.axhline(ls='--', c='k', linewidth=0.8)
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -266,13 +329,14 @@ plt.savefig(out_dir+f'diff_cov_out_diag_cl_theory_T_gal_lmax{lmax}_nsim{nsim}_ns
 
 fig = plt.figure(figsize=(17,10))
 
-plt.suptitle( r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+plt.suptitle( r'$\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
 ax = fig.add_subplot(1, 1, 1)
 for b in range(nbins-1):
-    ax.plot(ell_vec, (np.sqrt(np.diag(cov_TS_galT_mask[b,b+1]))/np.sqrt(np.diag(cov_pseudo_cl_tomo[b,b+1]))-1)*100 ,'o',ms=10, label=f'Bin={b}x{b+1}')
-ax.axhline(ls='--', c='k', linewidth=0.8)
+    ax.plot(ell_vec[2:], (np.sqrt(np.diag(cov_TS_galT_mask[b,b+1])[2:])/np.sqrt(np.diag(cov_pseudo_cl[b,b+1])[2:])-1)*100 ,'o',ms=10, label=f'Bin={b}x{b+1}')
+    #print((np.diag(cov_TS_galT_mask[b,b+1])[2:]))
 
+ax.axhline(ls='--', c='k', linewidth=0.8)
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
 ax.legend(ncol=2)
@@ -288,22 +352,49 @@ plt.savefig(out_dir+f'diff_cov_redshift_out_diag+1_cl_theory_T_gal_lmax{lmax}_ns
 
 fig = plt.figure(figsize=(17,10))
 
-plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+plt.suptitle( r'$\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
 ax = fig.add_subplot(1, 1, 1)
 for b in range(nbins-2):
-    ax.plot(myanalysis.jvec[1:jmax+1], (np.sqrt(np.diag(cov_TS_galT_mask[b,b+2])[1:jmax+1])/np.sqrt(np.diag(delta_gamma_tomo[b,b+2])[1:jmax+1])-1)*100 ,'o',ms=10, label=f'Bin={b}x{b+2}')
-    print(np.diag(delta_gamma_tomo[b,b+2])[1:jmax+1])
+    ax.plot(ell_vec[2:], (np.sqrt(np.diag(cov_TS_galT_mask[b,b+2])[2:])/np.sqrt(np.diag(cov_pseudo_cl[b,b+2])[2:])-1)*100 ,'o',ms=10, label=f'Bin={b}x{b+2}')
+    #print(np.sqrt(np.diag(cov_pseudo_cl[b,b+2])[2:]))
 
 ax.axhline(ls='--', c='k', linewidth=0.8)
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
-ax.set_xticks(myanalysis.jvec[1:])
+#ax.set_xticks(ell_vec)
 ax.legend(ncol=2)
 ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'% $Cov(diag)_{\mathrm{sims}}/Cov(diag)_{\mathrm{analytic}}$ - 1')
 
 fig.tight_layout()
-plt.savefig(out_dir_prova+f'diff_cov_redshift_out_diag+2_betaj_theory_T_gal_jmax{jmax}_D{B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
+plt.savefig(out_dir+f'diff_cov_redshift_out_diag+2_betaj_theory_T_gal_lmax{lmax}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
 
+
+###SIGNAL TO NOISE #####
+def S_2_N_ell(cltg, icov):
+    nell  = cltg.shape[1]
+    s2n = np.zeros(nell)
+    for il in range(nell):
+        for iil in range(nell):
+            s2n[il] += np.dot(cltg[:, il], np.dot(icov[:, :, il, iil], cltg[:, iil]))
+    return s2n
+
+def S_2_N_cum(s2n, lmax):
+    s2n_cum = np.zeros(lmax.shape[0])
+    for l,ell in enumerate(lmax):
+        for ill in range(2,ell):
+            s2n_cum[l] +=s2n[ill]
+        s2n_cum[l]= np.sqrt(s2n_cum[l])      
+    return s2n_cum
+
+icov_sim=np.zeros((nbins, nbins, lmax+1,lmax+1))
+for il in range(lmax+1):
+        for iil in range(lmax+1):
+            icov_sim[:, :, il, iil] = np.linalg.inv(cov_TS_galT_mask[:, :, il,iil])
+
+lmax_vec_cl=np.arange(2,256,10, dtype=int)
+
+s2n_ell_sim = S_2_N_ell(cl_TG_mask_mean, icov_sim)
+s2n_cum_sim = S_2_N_cum(s2n_ell_sim, lmax_vec_cl)

@@ -2,7 +2,7 @@
 # Please make changes to the code generator             (distutils/ccompiler_opt.py)
 hash = 2756061730
 data = \
-{'cache_infile': True,
+{'cache_infile': False,
  'cache_me': {"('cc_test_flags', ['-O3'])": True,
               "('cc_test_flags', ['-Werror'])": True,
               "('cc_test_flags', ['-march=native'])": True,
@@ -200,11 +200,7 @@ data = \
  'cc_on_x64': True,
  'cc_on_x86': False,
  'feature_is_cached': True,
-<<<<<<< HEAD
  'feature_min': {'SSE', 'SSE2', 'SSE3'},
-=======
- 'feature_min': {'SSE2', 'SSE', 'SSE3'},
->>>>>>> euclid_implementation
  'feature_supported': {'AVX': {'flags': ['-mavx'],
                                'headers': ['immintrin.h'],
                                'implies': ['SSE42'],
@@ -308,7 +304,7 @@ data = \
                                'headers': ['x86intrin.h'],
                                'implies': ['AVX'],
                                'interest': 9}},
- 'hit_cache': True,
+ 'hit_cache': False,
  'parse_baseline_flags': ['-msse', '-msse2', '-msse3'],
  'parse_baseline_names': ['SSE', 'SSE2', 'SSE3'],
  'parse_dispatch_names': ['SSSE3', 'SSE41', 'POPCNT', 'SSE42', 'AVX', 'F16C',

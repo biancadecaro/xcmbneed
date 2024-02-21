@@ -43,16 +43,18 @@ Aisw=np.linspace(0.0,2.,31)
 jmax = 12
 lmax = 782
 
-cov_matrix = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi/cov_TS_galT_jmax12_B = 1.74 $_nside512_mask.dat')[1:(jmax+1),1:(jmax+1)]
+cov_matrix = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi_NO_fsky_approx/cov_TS_galT_jmax12_B = 1.74 $_nside512_mask.dat')[1:(jmax+1),1:(jmax+1)]
+#cov_matrix_fsky =np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi/cov_TS_galT_jmax12_B = 1.74 $_nside512_mask.dat')[1:(jmax+1),1:(jmax+1)]
 
-variance_theory = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi/variance_beta_TS_galS_theoretical_fiducial_B1.7422102429630426_noise.dat')[1:(jmax+1)]
+variance_theory = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi_NO_fsky_approx/variance_beta_TS_galS_theoretical_fiducial_B1.7422102429630426_noise.dat')[1:(jmax+1)]
 print(f'shape cov = {cov_matrix.shape}')
 nj=cov_matrix.shape[1]
 
-beta_fid_array = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi/betaj_sims_TS_galT_jmax12_B_1.7422102429630426_nside512_fsky_0.7794118722279867.dat')[:,1:(jmax+1)]
+beta_fid_array = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi_NO_fsky_approx/betaj_sims_TS_galT_jmax12_B_1.7422102429630426_nside512_fsky_0.7794118722279867.dat')[:,1:(jmax+1)]
 nsim = beta_fid_array.shape[0]
 
-beta_theory= np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi/beta_TS_galS_theoretical_fiducial_B1.7422102429630426.dat')[1:(jmax+1)]
+#beta_theory= np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi/beta_TS_galS_theoretical_fiducial_B1.7422102429630426.dat')[1:(jmax+1)]
+gamma_theory = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/Mask_noise/TG_512_tesi_NO_fsky_approx/gammaj_theory_B1.74_jmax12_nside512_lmax782_nsim500_fsky0.78.dat')[1:(jmax+1)]
 
 
 fsky=0.7794118722279867
@@ -62,11 +64,10 @@ num_sim = 45
 beta_fid =   beta_fid_array[num_sim]
 
 beta_fid_mean = np.mean(beta_fid_array, axis=0)
-beta_A =np.array([a*beta_theory for a in Aisw])
+beta_A =np.array([a*gamma_theory for a in Aisw])
 
-
-chi_squared = liklh.Calculate_chi2_grid(beta_fid=beta_fid, beta_grid=beta_A, cov=cov_matrix, jmax=jmax, params = Aisw )
-#chi_squared = liklh.delta_chi2_grid(beta_fid=beta_fid_mean, beta_grid=beta_A, cov=variance_theory**2, jmax=jmax, params = Aisw )
+#chi_squared = liklh.Calculate_chi2_grid(beta_fid=beta_fid_mean, beta_grid=beta_A, cov=cov_matrix, jmax=jmax, params = Aisw )
+chi_squared = liklh.delta_chi2_grid(beta_fid=beta_fid, beta_grid=beta_A, cov=variance_theory**2, jmax=jmax, params = Aisw )
 perc = chi2.cdf(chi_squared, nj)
 
 lik = liklh.Likelihood(chi_squared=chi_squared)
@@ -145,7 +146,7 @@ for n in range(nsim):
 
 Aisw_mean= np.mean(Aisw_min)
 Aisw_std = np.std(Aisw_min)
-print(Aisw_std)
+print(Aisw_mean, Aisw_std)
 
 
 percentile_sim = np.percentile(Aisw_min, q = [16,50,84])
@@ -179,13 +180,13 @@ ax.set_xlim(binrange[0], binrange[1])
 #ax.axvline(mean,color='r')
 #ax.axvline(percentile[2],color='b')
 ax.axvline(Aisw_mean, color = 'b', linestyle='-')
+ax.axvline(Aisw_mean+Aisw_std, color = 'b' )
+ax.axvline(Aisw_mean-Aisw_std, color = 'b' )
 
 ax.axvline(1.,color ='grey',linestyle='--', label = 'Fiducial Aisw')
 plt.legend(loc='best')
 plt.tight_layout()
 plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.png')
 plt.savefig('plot_tesi/Parameter_estimation/' +filename +'.pdf')
-
-
 
 

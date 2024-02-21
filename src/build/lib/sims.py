@@ -23,7 +23,7 @@ class KGsimulations(object):
 		if not os.path.exists(self.LibDir):
 			os.makedirs(self.LibDir)
 			
-	def Run(self, nsim, WantTG, EuclidSims=False):
+	def Run(self, nsim, WantTG, nbins, EuclidSims=False):
 		"""
 		It generates nsim realizations of the CMB lensing and galaxy fields.
 		The outputs are *correlated* maps of Kappa and Delta, signal-only and
@@ -38,12 +38,15 @@ class KGsimulations(object):
 
 		if WantTG == True:
 			nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/4
+			if nbins!=1:
+				nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/(3*nbins)
 		else:
 			nsim_found = len(glob.glob(self.LibDir + "sim_*_*_" + ('%04d' % self.SimPars['nside']) + ".fits"))/6
 		
 		if EuclidSims == True:
 			print('... Euclid sims requested ...')
-			nsim_found = len(glob.glob(self.LibDir + "map_nbin1_NSIDE" + str(self.SimPars['nside']) + "_lmax*_*_*.fits"))/2
+			nsim_found = len(glob.glob(self.LibDir + "map_nbin*_NSIDE" + str(self.SimPars['nside']) + "_lmax*_*_*.fits"))/(nbins+1)
+		
 		
 
 		print('nsim_found = ', nsim_found)
@@ -65,39 +68,57 @@ class KGsimulations(object):
 				if WantTG == True:
 					
 					#Correlated signal temperature and density maps
-					TS_map, galS_map = utils.GetCorrMaps(self.XCSpectraFile.cltg, self.XCSpectraFile.cltt, self.XCSpectraFile.clg1g1, self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
+					if nbins==1:
+						TS_map, galS_map = utils.GetCorrMaps(self.XCSpectraFile.cltg1, self.XCSpectraFile.cltt, self.XCSpectraFile.clg1g1, self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
 					 #continuare qua e capire se mettere anche noise e total maps (ma forse per ora no perche non ho un rumore)
-
-					galN_map = utils.GetGalNoiseMap(self.SimPars['nside'], self.SimPars['ngal'], dim=self.SimPars['ngal_dim'], delta=True)
+					
+						#galN_map = utils.GetGalNoiseMap(self.SimPars['nside'], self.SimPars['ngal'], dim=self.SimPars['ngal_dim'], delta=True) #! questa mappa non serve a niente
 					
 					# Total maps
-					galT_map = utils.Counts2Delta(utils.GetCountsTot(galS_map, self.SimPars['ngal'], dim=self.SimPars['ngal_dim']))
+						galT_map = utils.Counts2Delta(utils.GetCountsTot(galS_map, self.SimPars['ngal'], dim=self.SimPars['ngal_dim']))
 						#Noise maps
-					#if self.XCSpectraFile.nltt is not None:
-					#	TN_map = hp.synfast(self.XCSpectraFile.nltt, self.SimPars['nside'], pixwin=self.SimPars['pixwin'], verbose=False)
-					#	TT_map = TS_map + TN_map
-					#else:
-					#	TN_map = np.zeros_like(TS_map)
-						#TT_map = TS_map
+						#if self.XCSpectraFile.nltt is not None:
+						#	TN_map = hp.synfast(self.XCSpectraFile.nltt, self.SimPars['nside'], pixwin=self.SimPars['pixwin'], verbose=False)
+						#	TT_map = TS_map + TN_map
+						#else:
+						#	TN_map = np.zeros_like(TS_map)
+							#TT_map = TS_map
 					
 
-					#Saving maps
-					fname_TS = self.LibDir + "sim_" + ('%04d' % n) + "_TS_" + ('%04d' % self.SimPars['nside']) + ".fits"
-					fname_galS = self.LibDir + "sim_" + ('%04d' % n) + "_galS_" + ('%04d' % self.SimPars['nside']) + ".fits"
-					#fname_TN = self.LibDir + "sim_" + ('%04d' % n) + "_TN_" + ('%04d' % self.SimPars['nside']) + ".fits"
-					fname_galN = self.LibDir + "sim_" + ('%04d' % n) + "_galN_" + ('%04d' % self.SimPars['nside']) + ".fits"
-					#fname_TT = self.LibDir + "sim_" + ('%04d' % n) + "_TT_" + ('%04d' % self.SimPars['nside']) + ".fits"
-					fname_galT = self.LibDir + "sim_" + ('%04d' % n) + "_galT_" + ('%04d' % self.SimPars['nside']) + ".fits"
-					
+						#Saving maps
+						fname_TS = self.LibDir + "sim_" + ('%04d' % n) + "_TS_" + ('%04d' % self.SimPars['nside']) + ".fits"
+						fname_galS = self.LibDir + "sim_" + ('%04d' % n) + "_galS_" + ('%04d' % self.SimPars['nside']) + ".fits"
+						#fname_TN = self.LibDir + "sim_" + ('%04d' % n) + "_TN_" + ('%04d' % self.SimPars['nside']) + ".fits"
+						#fname_galN = self.LibDir + "sim_" + ('%04d' % n) + "_galN_" + ('%04d' % self.SimPars['nside']) + ".fits"
+						#fname_TT = self.LibDir + "sim_" + ('%04d' % n) + "_TT_" + ('%04d' % self.SimPars['nside']) + ".fits"
+						fname_galT = self.LibDir + "sim_" + ('%04d' % n) + "_galT_" + ('%04d' % self.SimPars['nside']) + ".fits"
 
-					hp.write_map(fname_TS, TS_map, nest=False)#,overwrite = True)
-					hp.write_map(fname_galS, galS_map, nest=False)#,overwrite = True)
-					#hp.write_map(fname_TN, TN_map, nest=False)#,overwrite = True)
-					hp.write_map(fname_galN, galN_map, nest=False)#,overwrite = True)
-					#hp.write_map(fname_TT, TT_map, nest=False)#,overwrite = True)
-					hp.write_map(fname_galT, galT_map, nest=False)#,overwrite = True)
-					#cls_from_sims = hp.sphtfunc.anafast(map1=TS_map, map2=galS_map)
-					#np.savetxt('spectra/clsTG_from_sims_null.dat', cls_from_sims)
+
+						hp.write_map(fname_TS, TS_map, nest=False)#,overwrite = True)
+						hp.write_map(fname_galS, galS_map, nest=False)#,overwrite = True)
+						#hp.write_map(fname_TN, TN_map, nest=False)#,overwrite = True)
+						#hp.write_map(fname_galN, galN_map, nest=False)#,overwrite = True)
+						#hp.write_map(fname_TT, TT_map, nest=False)#,overwrite = True)
+						hp.write_map(fname_galT, galT_map, nest=False)#,overwrite = True)
+						#cls_from_sims = hp.sphtfunc.anafast(map1=TS_map, map2=galS_map)
+						#np.savetxt('spectra/clsTG_from_sims_null.dat', cls_from_sims)
+
+					else: #per ora non sto correlando i bins tra di loro
+						TS_map = np.zeros((nbins, hp.nside2npix(nside=self.SimPars['nside'])))
+						galS_map = np.zeros((nbins, hp.nside2npix(nside=self.SimPars['nside'])))
+						galT_map = np.zeros((nbins, hp.nside2npix(nside=self.SimPars['nside'])))
+						fname_TS = [self.LibDir + "sim_" + ('%04d' % n) + f"_TS{bin}_"+ ('%04d' % self.SimPars['nside']) + ".fits" for bin in range(nbins)]
+						fname_galS = [self.LibDir + "sim_" + ('%04d' % n) + "_galS"+str(bin)+"_" + ('%04d' % self.SimPars['nside']) + ".fits" for bin in range(nbins)]
+						fname_galT = [self.LibDir + "sim_" + ('%04d' % n) + "_galT"+str(bin)+"_" + ('%04d' % self.SimPars['nside']) + ".fits" for bin in range(nbins)]
+						
+						for bin in range(nbins):
+							TS_map[bin], galS_map[bin] = utils.GetCorrMaps(self.XCSpectraFile.cltg[bin], self.XCSpectraFile.cltt, self.XCSpectraFile.clgg[bin, bin], self.SimPars['nside'], pixwin=self.SimPars['pixwin'])
+							galT_map[bin] = utils.Counts2Delta(utils.GetCountsTot(galS_map[bin], self.SimPars['ngal']/nbins, dim=self.SimPars['ngal_dim']))
+							
+							hp.write_map(fname_TS[bin], TS_map[bin], nest=False)
+							hp.write_map(fname_galS[bin], galS_map[bin], nest=False)
+							hp.write_map(fname_galT[bin], galT_map[bin], nest=False)
+						
 
 				else:	
 					# Correlated *signal* lensing and density maps
@@ -131,17 +152,21 @@ class KGsimulations(object):
 			
 			if myid == 0: print("-->simulations done...")
 
+	#def GetSimField(self, field, idx, nbins=None):
+	#	if nbins==None:
+	#		fname = self.LibDir + "sim_" + ('%04d' % idx) + "_" + field + "_" + ('%04d' % self.SimPars['nside']) + ".fits"
+	#	else:
+	#		for bin in range(nbins):
+	#			fname = self.LibDir + "sim_" + ('%04d' % idx) + "_" + field  +str(bin)+"_" + ('%04d' % self.SimPars['nside']) + ".fits"
+	#	return hp.read_map(fname, verbose=False)
 	def GetSimField(self, field, idx):
 		fname = self.LibDir + "sim_" + ('%04d' % idx) + "_" + field + "_" + ('%04d' % self.SimPars['nside']) + ".fits"
 		return hp.read_map(fname, verbose=False)
 	
-<<<<<<< HEAD
-	def GetSimField_Marina(self, field, idx,lmax):
-		fname = self.LibDir + "map_nbin1_NSIDE" + ('%04d' % self.SimPars['nside']) + "lmax_" + ('%04d' % lmax)  + "_" + field + "_"  + ('%04d' % idx)+".fits"#map_nbin1_NSIDE128_lmax256_T_00327.fits
-=======
-	def GetSimField_Euclid(self, field, idx,lmax):
-		fname = self.LibDir + "map_nbin1_NSIDE" + str(self.SimPars['nside']) + "_lmax" + str(lmax)  + "_" + ('%05d' % (idx+1))+ "_" + field + ".fits"#map_nbin1_NSIDE128_lmax256_00327_T.fits
->>>>>>> euclid_implementation
+	def GetSimField_Euclid(self, field, nbins,idx,lmax, noise=False):
+		fname = self.LibDir + f"map_nbin{nbins}_NSIDE" + str(self.SimPars['nside']) + "_lmax" + str(lmax)  +  "_" + field +"_" + ('%05d' % (idx+1))+ ".fits"#map_nbin1_NSIDE128_lmax256_00327_T.fits
+		if noise==True:
+			fname = self.LibDir + f"map_nbin{nbins}_NSIDE" + str(self.SimPars['nside']) + "_lmax" + str(lmax)  +  "_" + field +"_" + ('%05d' % (idx+1))+ "_noise.fits"#map_nbin1_NSIDE128_lmax256_00327_T.fits
 		return hp.read_map(fname, verbose=False)
 	
 	def GetMeanField(self, field, idx):
