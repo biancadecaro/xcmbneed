@@ -53,7 +53,7 @@ plt.rcParams['lines.linewidth']  = 3.
 
 # Parameters
 simparams = {'nside'   : 128,
-             'ngal'    : 354543085.80126834, #dovrebbe importare solo per lo shot noise (noise poissoniano)
+             'ngal'    : 35454308.580126834, #dovrebbe importare solo per lo shot noise (noise poissoniano)
  	     	 'ngal_dim': 'ster',
 	     	 'pixwin'  : False}
 
