@@ -196,11 +196,11 @@ class NeedletTheory(object):
         self.npoints = npoints
         self.norm = self.get_normalization()
 
-    def ell_binning(self, jmax, lmax, ell):
+    def ell_binning(self, jmax, lmax):#, ell):
         """
         Returns the binning scheme in  multipole space
         """
-        assert(np.floor(self.B**(jmax+1)) <= ell.size-1) 
+        #assert(np.floor(self.B**(jmax+1)) <= ell.size-1) 
         ellj = []
         for j in range(jmax+1):
             lmin = np.floor(self.B**(j-1))
@@ -534,7 +534,6 @@ class NeedletTheory(object):
         return delta_gammaj/(4*np.pi)**2
 
     def variance_gammaj_tomo_0(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
-            import math, sys
             noise_vec = np.zeros_like(clgg)
             #print(noise_vec.shape)
             if noise_gal_l is not None:
@@ -568,6 +567,8 @@ class NeedletTheory(object):
             return delta_gammaj/(4*np.pi)**2
     
     def variance_gammaj_tomo_abs(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
+            import seaborn as sns
+            import matplotlib
             noise_vec = np.zeros_like(clgg)
 
             if noise_gal_l is not None:
@@ -589,7 +590,7 @@ class NeedletTheory(object):
 
             Mll = Mll[2:lmax+1,2:lmax+1]
             covll = np.zeros((nbins, cltg.shape[1],nbins, cltg.shape[1]))
-            delta_gammaj= np.zeros((nbins,nbins, jmax+1,jmax+1))
+            delta_gammaj= np.zeros((nbins,jmax,nbins, jmax))
 
             for ibin in range(nbins):
                 for iibin in range(nbins):
@@ -601,37 +602,21 @@ class NeedletTheory(object):
                                 clgg[ibin,iibin,ell2] = np.abs(clgg[ibin,iibin,ell2])
                             covll[ibin,ell1,iibin,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+
                                                         np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
-                            delta_gammaj[ibin,iibin] = np.dot(bjl[:,2:], np.dot(covll[ibin,iibin], bjl[:,2:].T))
-    
+                    delta_gammaj[ibin,:,iibin,:] = np.dot(bjl[1:,2:], np.dot(covll[ibin,:,iibin,:], bjl[1:,2:].T))
+
+            #print(covll.shape)
+            #fig , ax= plt.subplots(1,1)
+            #covll_reshaped = covll.reshape((nbins*(lmax-1), nbins*(lmax-1)))
+            #cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
+            #norm=matplotlib.colors.LogNorm(vmin = covll_reshaped.min(), vmax = covll_reshaped.max())#matplotlib.colors.Normalize(vmin = covll_reshaped.min(), vmax = covll_reshaped.max(), clip = False)
+            #plt.title('Analytic covariance cl')
+            #plt1=ax.imshow(covll_reshaped, cmap=cmap, norm=norm)#, vmin=-0.1, vmax=0.1)
+            #ax.invert_yaxis()
+            #plt.colorbar(plt1, ax=ax)
+            #plt.tight_layout()
+            #fig.savefig('/home/bdecaro/xcmbneed/src/output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/covariance/covariance_cl_tomography_analytic.png')
+            
             return delta_gammaj/(4*np.pi)**2
 
-def cov_pseudo_cl_tomo_abs(cltg,cltt, clgg, Mll, lmax,nbins, noise_gal_l=None):
-    """
-    Returns the Cov(Pseudo-C_\ell, Pseudo-C_\ell')
-    Notes
-    -----
-    Cov(Pseudo-C_\ell, Pseudo-C_\ell') .shape = (lmax+1, lmax+1)
-    """
-    noise_vec = np.zeros_like(clgg)
-        #print(noise_vec.shape)
-    if noise_gal_l is not None:
-        noise = 1./noise_gal_l
-        for i in range(nbins):
-            noise_vec[i,i,:] = noise
-    cltg=cltg[:,2:lmax+1]
-    cltt=cltt[2:lmax+1]
-    clgg=clgg[:,:,2:lmax+1]
-    Mll = Mll[2:lmax+1,2:lmax+1]
-    covll = np.zeros((nbins, cltg.shape[1],nbins, cltg.shape[1]))
-    for ibin in range(nbins):
-        for iibin in range(nbins):
-            for ell1 in range(cltg.shape[1]):
-              for ell2 in range(cltg.shape[1]):
-                  if clgg[ibin,iibin,ell1]<0:
-                    clgg[ibin,iibin,ell1] =np.abs(clgg[ibin,iibin,ell1])
-                  if clgg[ibin,iibin,ell2]<0:
-                    clgg[ibin,iibin,ell2] = np.abs(clgg[ibin,iibin,ell2])
-                  covll[ibin,ell1,iibin,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+
-                                                np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
-    return covll
+
     
