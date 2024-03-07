@@ -99,12 +99,19 @@ simulations.Run(nsim, WantTG = True,EuclidSims=True,nbins=10)
 
 # Needlet Analysis
 myanalysis = analysis.NeedAnalysis(jmax, lmax, out_dir, simulations, nbins=10, EuclidSims=True)
+B=myanalysis.B
+print(B)
 
 # Theory Needlet spectra
 need_theory = spectra.NeedletTheory(myanalysis.B)
 
-B=myanalysis.B
-print(B)
+#binning_ell = need_theory.ell_binning(jmax, lmax)
+#print(binning_ell.shape[0])
+#with open(out_dir+f'binning_ell_lmax{lmax}_jmax{jmax}_B{B:0.2f}.dat','wt') as f:
+#    for i in range(binning_ell.shape[0]):
+#        f.write(f'j={i}:{binning_ell[i]}\n')
+
+
 
 # Computing simulated betajs
 print("...computing Betajs for simulations...")

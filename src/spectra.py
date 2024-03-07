@@ -208,6 +208,7 @@ class NeedletTheory(object):
             ell1  = np.arange(lmin, lmax+1, dtype=int)
             ellj.append(ell1)
         return np.asarray(ellj, dtype=object)
+
     
     def get_B_parameter(self):
         """
@@ -567,8 +568,49 @@ class NeedletTheory(object):
             return delta_gammaj/(4*np.pi)**2
     
     def variance_gammaj_tomo_abs(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
-            import seaborn as sns
-            import matplotlib
+
+            noise_vec = np.zeros_like(clgg)
+
+            if noise_gal_l is not None:
+                noise = 1./noise_gal_l
+            for i in range(nbins):
+                noise_vec[i,i,:] = noise
+            Mll  = self.get_Mll(wl, lmax=lmax)
+            ell  = np.arange(0, lmax+1, dtype=int)
+            bjl  = np.zeros((jmax+1,lmax+1))
+
+            b2=np.zeros((jmax+1, lmax+1))
+            for j in range(jmax+1):
+                b2[j,:] = self.b_need(ell/self.B**j)**2
+                b2[np.isnan(b2)] = 0.
+                bjl[j,:] = b2[j,:]*(2*ell+1.) 
+            np.savetxt(f'output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b2_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat',b2)
+
+            cltg=cltg[:,2:lmax+1]
+            cltt=cltt[2:lmax+1]
+            clgg=clgg[:,:,2:lmax+1]
+
+            Mll = Mll[2:lmax+1,2:lmax+1]
+            covll = np.zeros((nbins, cltg.shape[1],nbins, cltg.shape[1]))
+            delta_gammaj= np.zeros((nbins,jmax,nbins, jmax))
+
+            for ibin in range(nbins):
+                for iibin in range(nbins):
+                    for ell1 in range(cltg.shape[1]):
+                        for ell2 in range(cltg.shape[1]):
+                            if clgg[ibin,iibin,ell1]<0:
+                                clgg[ibin,iibin,ell1] =np.abs(clgg[ibin,iibin,ell1])
+                            if clgg[ibin,iibin,ell2]<0:
+                                clgg[ibin,iibin,ell2] = np.abs(clgg[ibin,iibin,ell2])
+                            covll[ibin,ell1,iibin,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+
+                                                        np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
+                    delta_gammaj[ibin,:,iibin,:] = np.dot(bjl[1:,2:], np.dot(covll[ibin,:,iibin,:], bjl[1:,2:].T))
+
+            return delta_gammaj/(4*np.pi)**2
+    
+    def variance_gammaj_tomo_abs_originale(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
+            #import seaborn as sns
+            #import matplotlib
             noise_vec = np.zeros_like(clgg)
 
             if noise_gal_l is not None:
