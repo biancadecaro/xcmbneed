@@ -382,10 +382,14 @@ class NeedletTheory(object):
         Mll  = self.get_Mll(wl, lmax=lmax)
         ell  = np.arange(0, lmax+1, dtype=np.int)
         bjl  = np.zeros((jmax+1,lmax+1))
+
+        #b2=np.zeros((jmax+1, lmax+1))
         for j in range(jmax+1):
             b2 = self.b_need(ell/self.B**j)**2
             b2[np.isnan(b2)] = 0.
             bjl[j,:] = b2*(2*ell+1.) 
+        #np.savetxt(f'output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b2_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}_gamma.dat',b2)
+
         return (bjl*np.dot(Mll, cl[:lmax+1])).sum(axis=1)/(4*np.pi)#np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
     
     def sigmaJ(self, cl, wl, jmax, lmax):
@@ -499,72 +503,121 @@ class NeedletTheory(object):
         delta_gammaj = np.dot(bjl, np.dot(covll, bjl.T))
         return delta_gammaj/(4*np.pi)**2
     
+    #def variance_gammaj_tomo(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
+    #    import math, sys
+    #    noise_vec = np.zeros_like(clgg)
+    #    #print(noise_vec.shape)
+    #    if noise_gal_l is not None:
+    #        #clgg_tot = clgg+noise_gal_l
+    #        noise = 1./noise_gal_l
+    #        for i in range(nbins):
+    #            noise_vec[i,i,:] = noise
+#
+#
+    #    Mll  = self.get_Mll(wl, lmax=lmax)
+    #    ell  = np.arange(0, lmax+1, dtype=int)
+    #    bjl  = np.zeros((jmax+1,lmax+1))
+    #    #delta_gammaj = np.zeros((jmax+1, jmax+1))
+    #    for j in range(jmax+1):
+    #        b2 = self.b_need(ell/self.B**j)**2
+    #        b2[np.isnan(b2)] = 0.
+    #        bjl[j,:] = b2*(2*ell+1.) 
+    #    covll = np.zeros((nbins, nbins,lmax+1,lmax+1))
+    #    delta_gammaj= np.zeros((nbins,nbins, jmax+1,jmax+1))
+    #    #nan=[]
+    #    for ibin in range(nbins):
+    #        for iibin in range(nbins):
+    #            for ell1 in range(lmax+1):
+    #                for ell2 in range(lmax+1):
+    #                    covll[ibin,iibin,ell1,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
+    #                    #if np.isnan(covll[ibin,iibin,ell1,ell2]): covll[ibin,iibin,ell1,ell2]=0
+    #                        #print(cltt[ell1],cltt[ell2],(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1]),(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2]))
+    #                        #nan.append([ibin,iibin,ell1,ell2,covll[ibin,iibin,ell1,ell2]])
+    #            delta_gammaj[ibin,iibin] = np.dot(bjl, np.dot(covll[ibin,iibin], bjl.T))
+    #    #np.savetxt('output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000/prova_plot/covariance_nan.txt',nan)
+#
+    #    return delta_gammaj/(4*np.pi)**2
+
     def variance_gammaj_tomo(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
-        import math, sys
-        noise_vec = np.zeros_like(clgg)
-        #print(noise_vec.shape)
-        if noise_gal_l is not None:
-            #clgg_tot = clgg+noise_gal_l
-            noise = 1./noise_gal_l
+            
+            noise_vec = np.zeros_like(clgg)
+
+            if noise_gal_l is not None:
+                noise = 1./noise_gal_l
             for i in range(nbins):
                 noise_vec[i,i,:] = noise
-
-
-        Mll  = self.get_Mll(wl, lmax=lmax)
-        ell  = np.arange(0, lmax+1, dtype=int)
-        bjl  = np.zeros((jmax+1,lmax+1))
-        #delta_gammaj = np.zeros((jmax+1, jmax+1))
-        for j in range(jmax+1):
-            b2 = self.b_need(ell/self.B**j)**2
-            b2[np.isnan(b2)] = 0.
-            bjl[j,:] = b2*(2*ell+1.) 
-        covll = np.zeros((nbins, nbins,lmax+1,lmax+1))
-        delta_gammaj= np.zeros((nbins,nbins, jmax+1,jmax+1))
-        #nan=[]
-        for ibin in range(nbins):
-            for iibin in range(nbins):
-                for ell1 in range(lmax+1):
-                    for ell2 in range(lmax+1):
-                        covll[ibin,iibin,ell1,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
-                        #if np.isnan(covll[ibin,iibin,ell1,ell2]): covll[ibin,iibin,ell1,ell2]=0
-                            #print(cltt[ell1],cltt[ell2],(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1]),(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2]))
-                            #nan.append([ibin,iibin,ell1,ell2,covll[ibin,iibin,ell1,ell2]])
-                delta_gammaj[ibin,iibin] = np.dot(bjl, np.dot(covll[ibin,iibin], bjl.T))
-        #np.savetxt('output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000/prova_plot/covariance_nan.txt',nan)
-
-        return delta_gammaj/(4*np.pi)**2
-
-    def variance_gammaj_tomo_0(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
-            noise_vec = np.zeros_like(clgg)
-            #print(noise_vec.shape)
-            if noise_gal_l is not None:
-                #clgg_tot = clgg+noise_gal_l
-                noise = 1./noise_gal_l
-                for i in range(nbins):
-                    noise_vec[i,i,:] = noise
-    
-    
             Mll  = self.get_Mll(wl, lmax=lmax)
             ell  = np.arange(0, lmax+1, dtype=int)
             bjl  = np.zeros((jmax+1,lmax+1))
-            #delta_gammaj = np.zeros((jmax+1, jmax+1))
+
+            #b2=np.zeros((jmax+1, lmax+1))
             for j in range(jmax+1):
                 b2 = self.b_need(ell/self.B**j)**2
                 b2[np.isnan(b2)] = 0.
                 bjl[j,:] = b2*(2*ell+1.) 
-            covll = np.zeros((nbins, nbins,lmax+1,lmax+1))
-            delta_gammaj= np.zeros((nbins,nbins, jmax+1,jmax+1))
-            #nan=[]
+            #np.savetxt(f'output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b2_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat',b2)
+
+            cltg=cltg[:,2:lmax+1]
+            cltt=cltt[2:lmax+1]
+            clgg=clgg[:,:,2:lmax+1]
+
+            Mll = Mll[2:lmax+1,2:lmax+1]
+            covll = np.zeros((nbins, cltg.shape[1],nbins, cltg.shape[1]))
+            delta_gammaj= np.zeros((nbins,jmax+1,nbins, jmax+1))
+
             for ibin in range(nbins):
                 for iibin in range(nbins):
-                    for ell1 in range(lmax+1):
-                        if clgg[ibin,iibin,ell1]<0:clgg[ibin,iibin,ell1]=0
-                        for ell2 in range(lmax+1):
-                            if clgg[ibin,iibin,ell2]<0:clgg[ibin,iibin,ell2]=0
-                            covll[ibin,iibin,ell1,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
-                    delta_gammaj[ibin,iibin] = np.dot(bjl, np.dot(covll[ibin,iibin], bjl.T))
-            #np.savetxt('output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000/prova_plot/covariance_nan.txt',nan)
-    
+                    for ell1 in range(cltg.shape[1]):
+                        for ell2 in range(cltg.shape[1]):
+                            #if clgg[ibin,iibin,ell1]<0:
+                            #    clgg[ibin,iibin,ell1] =0
+                            #if clgg[ibin,iibin,ell2]<0:
+                            #    clgg[ibin,iibin,ell2] = 0
+                            covll[ibin,ell1,iibin,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+
+                                                        np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
+                    delta_gammaj[ibin,:,iibin,:] = np.matmul(bjl[:,2:],np.matmul(covll[ibin,:,iibin,:], bjl[:,2:].T))
+
+            return delta_gammaj/(4*np.pi)**2
+
+    def variance_gammaj_tomo_0(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
+
+            noise_vec = np.zeros_like(clgg)
+
+            if noise_gal_l is not None:
+                noise = 1./noise_gal_l
+            for i in range(nbins):
+                noise_vec[i,i,:] = noise
+            Mll  = self.get_Mll(wl, lmax=lmax)
+            ell  = np.arange(0, lmax+1, dtype=int)
+            bjl  = np.zeros((jmax+1,lmax+1))
+
+            #b2=np.zeros((jmax+1, lmax+1))
+            for j in range(jmax+1):
+                b2 = self.b_need(ell/self.B**j)**2
+                b2[np.isnan(b2)] = 0.
+                bjl[j,:] = b2*(2*ell+1.) 
+            #np.savetxt(f'output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b2_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat',b2)
+
+            cltg=cltg[:,2:lmax+1]
+            cltt=cltt[2:lmax+1]
+            clgg=clgg[:,:,2:lmax+1]
+
+            Mll = Mll[2:lmax+1,2:lmax+1]
+            covll = np.zeros((nbins, cltg.shape[1],nbins, cltg.shape[1]))
+            delta_gammaj= np.zeros((nbins,jmax+1,nbins, jmax+1))
+
+            for ibin in range(nbins):
+                for iibin in range(nbins):
+                    for ell1 in range(cltg.shape[1]):
+                        for ell2 in range(cltg.shape[1]):
+                            if clgg[ibin,iibin,ell1]<0:
+                                clgg[ibin,iibin,ell1] =0
+                            if clgg[ibin,iibin,ell2]<0:
+                                clgg[ibin,iibin,ell2] = 0
+                            covll[ibin,ell1,iibin,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+
+                                                        np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
+                    delta_gammaj[ibin,:,iibin,:] = np.matmul(bjl[:,2:],np.matmul(covll[ibin,:,iibin,:], bjl[:,2:].T))
+
             return delta_gammaj/(4*np.pi)**2
     
     def variance_gammaj_tomo_abs(self, nbins,cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
@@ -572,19 +625,19 @@ class NeedletTheory(object):
             noise_vec = np.zeros_like(clgg)
 
             if noise_gal_l is not None:
-                noise = 1./noise_gal_l
+                noise = 1./(noise_gal_l/nbins)
             for i in range(nbins):
                 noise_vec[i,i,:] = noise
             Mll  = self.get_Mll(wl, lmax=lmax)
             ell  = np.arange(0, lmax+1, dtype=int)
             bjl  = np.zeros((jmax+1,lmax+1))
 
-            b2=np.zeros((jmax+1, lmax+1))
+            #b2=np.zeros((jmax+1, lmax+1))
             for j in range(jmax+1):
-                b2[j,:] = self.b_need(ell/self.B**j)**2
+                b2 = self.b_need(ell/self.B**j)**2
                 b2[np.isnan(b2)] = 0.
-                bjl[j,:] = b2[j,:]*(2*ell+1.) 
-            np.savetxt(f'output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b2_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat',b2)
+                bjl[j,:] = b2*(2*ell+1.) 
+            #np.savetxt(f'output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b2_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat',b2)
 
             cltg=cltg[:,2:lmax+1]
             cltt=cltt[2:lmax+1]
@@ -604,7 +657,7 @@ class NeedletTheory(object):
                                 clgg[ibin,iibin,ell2] = np.abs(clgg[ibin,iibin,ell2])
                             covll[ibin,ell1,iibin,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+
                                                         np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
-                    delta_gammaj[ibin,:,iibin,:] = np.dot(bjl[1:,2:], np.dot(covll[ibin,:,iibin,:], bjl[1:,2:].T))
+                    delta_gammaj[ibin,:,iibin,:] = np.matmul(bjl[1:,2:],np.matmul(covll[ibin,:,iibin,:], bjl[1:,2:].T))
 
             return delta_gammaj/(4*np.pi)**2
     
@@ -661,4 +714,31 @@ class NeedletTheory(object):
             return delta_gammaj/(4*np.pi)**2
 
 
+    def variance_cl_tomo_abs(self, nbins,cltg,cltt, clgg, wl, lmax, noise_gal_l=None):
+        noise_vec = np.zeros_like(clgg)
+        if noise_gal_l is not None:
+            noise = 1./(noise_gal_l/nbins)
+        for i in range(nbins):
+            noise_vec[i,i,:] = noise
+        Mll  = self.get_Mll(wl, lmax=lmax)
+        
+        cltg=cltg[:,2:lmax+1]
+        cltt=cltt[2:lmax+1]
+        clgg=clgg[:,:,2:lmax+1]
+        Mll = Mll[2:lmax+1,2:lmax+1]
+        covll = np.zeros((nbins, cltg.shape[1],nbins, cltg.shape[1]))
+        for ibin in range(nbins):
+            for iibin in range(nbins):
+                for ell1 in range(cltg.shape[1]):
+                    for ell2 in range(cltg.shape[1]):
+                        if clgg[ibin,iibin,ell1]<0:
+                            clgg[ibin,iibin,ell1] =np.abs(clgg[ibin,iibin,ell1])
+                        if clgg[ibin,iibin,ell2]<0:
+                            clgg[ibin,iibin,ell2] = np.abs(clgg[ibin,iibin,ell2])
+                        covll[ibin,ell1,iibin,ell2] = Mll[ell1,ell2]*(np.sqrt(cltg[ibin,ell1]*cltg[ibin,ell2]*cltg[iibin,ell1]*cltg[iibin,ell2])+
+                                                    np.sqrt(cltt[ell1]*cltt[ell2]*(clgg[ibin,iibin,ell1]+noise_vec[ibin,iibin,ell1])*(clgg[ibin,iibin,ell2]+noise_vec[ibin,iibin,ell2])))/(2.*ell1+1)
+        return covll
+
+
+    
     

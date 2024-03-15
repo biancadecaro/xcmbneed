@@ -62,5 +62,23 @@ ax1.set_title('D = 1.59')#, fontsize = 25)
 
 plt.tight_layout()
 
-
 plt.savefig('/home/bdecaro/xcmbneed/src/output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b_need_D1.59.png')
+
+b_need_1p59_gamma = np.loadtxt('/home/bdecaro/xcmbneed/src/output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b2_lmax256_jmax12_B1.59_gamma.dat')
+
+
+fig, ax1  = plt.subplots(1,1,figsize=(17,10)) 
+
+for i in range(0,b_need_1p59.shape[0]):
+    ax1.plot(b_need_1p59_gamma[i], label = 'j='+str(i) )
+ax1.set_xscale('log')
+
+ax1.set_xlabel(r'$\ell$')#, fontsize = 25)
+ax1.set_ylabel(r'$w^{2}(\frac{\ell}{D^{j}})$')#, fontsize = 25)
+ax1.legend(loc='right')#, fontsize = 25)
+ax1.set_title('D = 1.59')#, fontsize = 25)
+
+plt.tight_layout()
+
+
+plt.savefig('/home/bdecaro/xcmbneed/src/output_needlet_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000_nuovo/b_need_D1.59_gamma.png')

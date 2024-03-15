@@ -149,25 +149,8 @@ cov_betaj_sims_TS_galT_mask_reshaped = cov_betaj_sims_TS_galT_mask_full.reshape(
 corr_betaj_sims_TS_galT_full = np.corrcoef(betaj_sims_TS_galT_reshaped.T)
 corr_betaj_sims_TS_galT_mask_full = np.corrcoef(betaj_sims_TS_galT_mask_reshaped.T)
 
-print("...done...")
 
-# Some plots
-print("...here come the plots...")
-
-# Covariances
-
-fig,ax = plt.subplots(1,1)
-cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
-#norm=matplotlib.colors.LogNorm(vmin = cov_betaj_sims_TS_galT_mask_full.min(), vmax = cov_betaj_sims_TS_galT_mask_full.max())
-norm=matplotlib.colors.Normalize(vmin = cov_betaj_sims_TS_galT_mask_full.min(), vmax = cov_betaj_sims_TS_galT_mask_full.max(), clip = False)
-plt.title('Cov from sims')
-plt1=ax.imshow(cov_betaj_sims_TS_galT_mask_full, cmap=cmap, norm=norm)#, vmin=-0.1, vmax=0.1)
-ax.invert_yaxis()
-plt.colorbar(plt1, ax=ax)
-fig.savefig(cov_dir+'covariance_sims_full.png')
-
-
-########################################################################################################################################################################################
+print("...computing Analytical Needlet power spectra and Covariance Matrices...")
 
 # Theory + Normalization Needlet power spectra
 gammatg = np.zeros((nbins,jmax+1))
@@ -178,6 +161,62 @@ np.savetxt(out_dir+f'beta_TS_galT_theoretical_fiducial_B{B}_nbins{nbins}.dat', g
 
 #np.savetxt(out_dir+f'variance_beta_TS_galT_theoretical_fiducial_B{B}_nbins{nbins}.dat', delta_gamma_tomo.sum(axis=1))
 delta_gamma_tomo_reshaped = delta_gamma_tomo.reshape((nbins*(jmax), nbins*(jmax)))
+
+
+
+print('...Estimating Cls power spectra and covariance from maps...')
+filename_TG_mask = f'/home/bdecaro/xcmbneed/src/output_Cl_TG/EUCLID/Tomography/TG_128_lmax256_nbins10_nsim1000/cls_Tgalnoise_anafast_nside{nside}_lmax{lmax}_Euclidnoise_nbins10_nsim{nsim}_fsky{fsky:0.2f}.dat'#lmin{lmin}_marina.dat'
+
+import pickle
+
+with open(filename_TG_mask+'.pkl', 'rb') as f:
+        cl_TG_mask_sims = pickle.load(f)
+
+
+cl_TG_mask_mean = cl_TG_mask_sims.mean(axis=0)
+cls_sims_reshaped = cl_TG_mask_sims.reshape((nsim,nbins*(lmax+1)))
+cl_TG_mask_mean_reshaped = cls_sims_reshaped.mean(axis=0)
+
+cov_cls_full = np.cov(cls_sims_reshaped.T)
+print(cl_TG_mask_sims.shape, cov_cls_full.shape)
+
+
+cov_cls_reshaped = cov_cls_full.reshape((nbins,lmax+1,nbins, lmax+1))
+
+cov_theory_cls = need_theory.variance_cl_tomo_abs(nbins=nbins, lmax=lmax, wl=wl,cltg=xcspectra.cltg, cltt=xcspectra.cltt, clgg = xcspectra.clgg, noise_gal_l=simparams['ngal'])
+
+print("...done...")
+
+
+
+
+########################################################################################################################################################################################
+
+# Some plots
+print("...here come the plots...")
+
+###### Covariances
+
+fig,ax = plt.subplots(1,1)
+cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
+norm=matplotlib.colors.LogNorm()#vmin = cov_cls_full.min(), vmax = cov_cls_full.max())
+#norm=matplotlib.colors.Normalize(vmin = cov_cls_full.min(), vmax = cov_cls_full.max(), clip = False)
+plt.title('Cov Cls from sims')
+plt1=ax.imshow(cov_cls_full, cmap=cmap, norm=norm)
+ax.invert_yaxis()
+plt.colorbar(plt1, ax=ax)
+fig.savefig(cov_dir+'covariance_cls_sims_full.png')
+
+
+fig,ax = plt.subplots(1,1)
+cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
+#norm=matplotlib.colors.LogNorm(vmin = cov_betaj_sims_TS_galT_mask_full.min(), vmax = cov_betaj_sims_TS_galT_mask_full.max())
+norm=matplotlib.colors.Normalize(vmin = cov_betaj_sims_TS_galT_mask_full.min(), vmax = cov_betaj_sims_TS_galT_mask_full.max(), clip = False)
+plt.title('Cov from sims')
+plt1=ax.imshow(cov_betaj_sims_TS_galT_mask_full, cmap=cmap, norm=norm)#, vmin=-0.1, vmax=0.1)
+ax.invert_yaxis()
+plt.colorbar(plt1, ax=ax)
+fig.savefig(cov_dir+'covariance_sims_full.png')
 
 fig , ax= plt.subplots(1,1)
 cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
@@ -190,6 +229,19 @@ ax.set_title('Analytic covariance-Tomography', fontsize=15)
 plt.tight_layout()
 
 fig.savefig(cov_dir+'covariance_tomography_analytic.png')
+
+#diff_cov = cov_betaj_sims_TS_galT_mask_full/delta_gamma_tomo_reshaped-1
+#fig , ax= plt.subplots(1,1)
+#cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
+#norm=matplotlib.colors.Normalize(vmin = diff_cov.min(), vmax = diff_cov.max(), clip = False)
+##norm=matplotlib.colors.LogNorm(vmin = delta_gamma_tomo_reshaped.min(), vmax = delta_gamma_tomo_reshaped.max())
+#plt1=ax.imshow(diff_cov, cmap=cmap, norm=norm)#, vmin=-0.1, vmax=0.1)
+#ax.invert_yaxis()
+#plt.colorbar(plt1, ax=ax)
+#ax.set_title('Diff Sims Analytic covariance', fontsize=15)
+#plt.tight_layout()
+#
+#fig.savefig(cov_dir+'diff_cov_sims_analytic_tomography.png')
 
 fig , ax= plt.subplots(1,1)
 cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
@@ -205,7 +257,9 @@ plt.tight_layout()
 
 fig.savefig(cov_dir+'covariance_redshift0_analytic.png')
 
-####  NOISE
+################################################################################################################################################################################
+
+
 fig = plt.figure(figsize=(17,10))
 plt.suptitle(r'$D = %1.2f $' %B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~n_{\mathrm{bins}} =$'+str(nbins) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
@@ -226,7 +280,55 @@ ax.set_ylabel(r'$\Gamma_j^{\mathrm{TG}}$')
 fig.tight_layout()
 plt.savefig(out_dir+f'betaj_theory_NOISE_T_gal_jmax{jmax}_D{B:0.2f}_nsim{nsim}_nside{nside}_nbins{nbins}.png', bbox_inches='tight')
 
-####################################################################################################################################################################
+##############################################################
+
+fig = plt.figure(figsize=(17,10))
+
+plt.suptitle(r'$D = %1.2f $' %B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~n_{\mathrm{bins}} =$'+str(nbins) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+
+ax = fig.add_subplot(1, 1, 1)
+
+ax.axhline(ls='--', color='grey')
+for bin in range(1):
+    #ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galT_mean[bin][1:jmax] -betatg[bin][1:jmax])/betatg[bin][1:jmax], yerr=np.sqrt(np.diag(cov_TS_galT[bin])[1:jmax])/(np.sqrt(nsim)*betatg[bin][1:jmax]),  fmt='o',  ms=5,label=f'Bin = {bin} No Noise')
+    ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galT_mask_mean[bin][1:jmax]/gammatg[bin][1:jmax]-1), yerr=np.sqrt(np.diag(cov_betaj_sims_TS_galT_mask_reshaped[bin,:,bin,:])[1:jmax])/(np.sqrt(nsim)*gammatg[bin][1:jmax]),  fmt='o',  ms=5,label=f'Bin = {bin}, Shot Noise, variance from sim')
+    ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galT_mask_mean[bin][1:jmax]/gammatg[bin][1:jmax]-1), yerr=np.sqrt(np.diag(delta_gamma_tomo[bin,:,bin,:])[1:jmax])/(np.sqrt(nsim)*gammatg[bin][1:jmax]),  fmt='o',  ms=5,label=f'Bin = {bin}, Shot Noise, analytical variance')
+
+ax.legend(loc='best')
+ax.set_xticks(myanalysis.jvec[1:jmax])
+plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.yaxis.set_major_formatter(formatter) 
+ax.set_xlabel(r'$j$', fontsize=22)
+ax.set_ylabel(r'$\frac{\langle \Gamma_j^{\mathrm{TG}} \rangle - \Gamma_j^{\mathrm{TG}\,, th}}{\Gamma_j^{\mathrm{TG}\,, th}}$', fontsize=22)
+#ax.set_ylim([-0.2,0.3])
+
+fig.tight_layout()
+plt.savefig(out_dir+f'betaj_mean_T_gal_jmax{jmax}_D{B:1.2f}_nsim{nsim}_nside{nside}_nbins{nbins}.png', bbox_inches='tight')
+
+##############################################################
+
+fig = plt.figure(figsize=(17,10))
+
+plt.suptitle(r'$D = %1.2f $' %B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~n_{\mathrm{bins}} =$'+str(nbins) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+
+ax = fig.add_subplot(1, 1, 1)
+
+ax.axhline(ls='--', color='grey')
+for bin in range(nbins):
+    ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galT_mask_mean[bin][1:jmax]/gammatg[bin][1:jmax]-1), yerr=np.sqrt(np.diag(cov_betaj_sims_TS_galT_mask_reshaped[bin,:,bin,:])[1:jmax])/(np.sqrt(nsim)*gammatg[bin][1:jmax]),  fmt='o',  ms=5,label=f'Bin = {bin}')
+
+ax.legend(loc='best', ncol=2)
+ax.set_xticks(myanalysis.jvec[1:jmax])
+plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.yaxis.set_major_formatter(formatter) 
+ax.set_xlabel(r'$j$', fontsize=22)
+ax.set_ylabel(r'$\frac{\langle \Gamma_j^{\mathrm{TG}} \rangle }{\Gamma_j^{\mathrm{TG}\,, th}}}$-1', fontsize=22)
+#ax.set_ylim([-0.2,0.3])
+
+fig.tight_layout()
+plt.savefig(out_dir+f'betaj_ratio_mean_T_gal_jmax{jmax}_D{B:1.2f}_nsim{nsim}_nside{nside}_nbins{nbins}.png', bbox_inches='tight')
+
+############################################
 
 fig = plt.figure(figsize=(17,10))
 
@@ -252,13 +354,34 @@ fig.tight_layout()
 plt.savefig(out_dir+f'betaj_mean_T_gal_jmax{jmax}_D{B:1.2f}_nsim{nsim}_nside{nside}_nbins{nbins}.png', bbox_inches='tight')
 
 ############################# DIFF COVARIANCES #####################################
+
+
 fig = plt.figure(figsize=(17,10))
 
 plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
 ax = fig.add_subplot(1, 1, 1)
 for b in range(nbins):
-    ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_betaj_sims_TS_galT_mask_reshaped[b,:,b,:])[1:])/np.sqrt(np.diag(delta_gamma_tomo[b,:,b,:]))-1)*100 ,'o',ms=10, label=f'Bin={b}x{b}')
+    ax.plot(ell_cl[2:], (np.sqrt(np.diag(cov_cls_reshaped[b,2:,b,2:]))/np.sqrt(np.diag(cov_theory_cls[b,:,b,:]))-1)*100 ,'o',ms=10, label=f'Bin={b}x{b}')
+ax.axhline(ls='--', c='k', linewidth=0.8)
+
+plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.yaxis.set_major_formatter(formatter) 
+#ax.set_xticks(ell_cl[2:])
+ax.legend(ncol=2)
+ax.set_xlabel(r'$\ell$')
+ax.set_ylabel(r'% $\sigma_{\mathrm{sims}}/\sigma_{\mathrm{analytic}}$ - 1')
+
+fig.tight_layout()
+plt.savefig(out_dir+f'diff_cov_cl_theory_T_gal_lmax{lmax}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
+
+fig = plt.figure(figsize=(17,10))
+
+plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+
+ax = fig.add_subplot(1, 1, 1)
+for b in range(nbins):
+    ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_betaj_sims_TS_galT_mask_reshaped[b,:,b,:])[1:])/np.sqrt(np.diag(delta_gamma_tomo[b,:,b,:])[:])-1)*100 ,'o',ms=10, label=f'Bin={b}x{b}')
 ax.axhline(ls='--', c='k', linewidth=0.8)
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -271,7 +394,7 @@ ax.set_ylabel(r'% $\sigma_{\mathrm{sims}}/\sigma_{\mathrm{analytic}}$ - 1')
 fig.tight_layout()
 plt.savefig(out_dir+f'diff_cov_betaj_theory_T_gal_jmax{jmax}_D{B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
 
-#### fuoei diagonale per bin i bin i
+#### fuori diagonale per bin i bin i
 
 fig = plt.figure(figsize=(17,10))
 
@@ -301,7 +424,7 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 for b in range(nbins-1):
-    ax.plot(myanalysis.jvec[1:jmax+1], (np.sqrt(np.diag(cov_betaj_sims_TS_galT_mask_full[b*(jmax+1):(b+1)*(jmax+1), (b+1)*(jmax+1):(b+2)*(jmax+1)])[1:jmax+1])/np.sqrt(np.diag(delta_gamma_tomo[b,:,b+1,:]))-1)*100 ,'o',ms=10, label=f'Bin={b}x{b+1}')
+    ax.plot(myanalysis.jvec[1:jmax+1], (np.sqrt(np.diag(cov_betaj_sims_TS_galT_mask_full[b*(jmax+1):(b+1)*(jmax+1), (b+1)*(jmax+1):(b+2)*(jmax+1)])[1:jmax+1])/np.sqrt(np.diag(delta_gamma_tomo[b,:,b+1,:])[:jmax+1])-1)*100 ,'o',ms=10, label=f'Bin={b}x{b+1}')
 ax.axhline(ls='--', c='k', linewidth=0.8)
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -324,7 +447,7 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 for b in range(nbins-2):
-    ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_betaj_sims_TS_galT_mask_full[b*(jmax+1):(b+1)*(jmax+1), (b+2)*(jmax+1):(b+3)*(jmax+1)])[1:])/np.sqrt(np.diag(delta_gamma_tomo[b,:,b+2,:]))-1)*100 ,'o',ms=10, label=f'Bin={b}x{b+2}')
+    ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_betaj_sims_TS_galT_mask_full[b*(jmax+1):(b+1)*(jmax+1), (b+2)*(jmax+1):(b+3)*(jmax+1)])[1:])/np.sqrt(np.diag(delta_gamma_tomo[b,:,b+2,:])[:jmax+1])-1)*100 ,'o',ms=10, label=f'Bin={b}x{b+2}')
 
 ax.axhline(ls='--', c='k', linewidth=0.8)
 
