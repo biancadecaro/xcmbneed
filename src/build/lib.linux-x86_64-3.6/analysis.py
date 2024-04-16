@@ -314,7 +314,7 @@ class NeedAnalysis(object):
                 print("==>lmax={:d}, jmax={:d}, nside={:d}, B={:e}".format(self.lmax,self.jmax,self.Sims.SimPars['nside'],self.B)) 
                 self.b_values = pippo.mylibpy_needlets_std_init_b_values(self.B, self.jmax, self.lmax)
                 #print(self.b_values, self.b_values.shape)
-                #np.savetxt('./b_values_B=%1.2f' %self.B+'.txt',self.b_values)
+                np.savetxt('b_need/alessandro_b_values_B=%1.2f' %self.B+'.txt',self.b_values)
                 pippo.mylibpy_needlets_check_windows(self.jmax, self.lmax, self.b_values)
                 self.jvec = np.arange(self.jmax+1)
                 print("...done...")
@@ -389,7 +389,7 @@ class NeedAnalysis(object):
                         #map1 *= mask 
                         bad_v = np.where(mask==0)
                         nside = hp.get_nside(map1)
-                        print(bad_v[0].shape[0], hp.nside2npix(nside)-np.sum(mask))
+                        #print(bad_v[0].shape[0], hp.nside2npix(nside)-np.sum(mask))
                         print(f'fsky mappa 1={fsky:0.2f}')
                         map1[bad_v]=hp.UNSEEN
                         #map1 = hp.remove_dipole(map1, verbose=False) #BIANCA 8/9/2023
@@ -410,7 +410,7 @@ class NeedAnalysis(object):
                                print(f'fsky mappa 2={np.mean(mask) :0.2f}')
                                bad_v_2 = np.where(mask==0)  #BIANCA aggiunto da 409 a 413 
                                map2[bad_v_2]=hp.UNSEEN
-                               #map2 = hp.remove_dipole(map2, verbose=False)
+                               #map2 = hp.remove_dipole(map2, verbose=False) #BIANCA 8/9/2023
                                #map2[bad_v_2]=0.0
                         else:
                                 map2 = hp.remove_dipole(map2, verbose=False)#.compressed()

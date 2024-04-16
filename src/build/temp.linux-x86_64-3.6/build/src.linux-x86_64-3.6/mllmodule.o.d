@@ -84,8 +84,5 @@ build/temp.linux-x86_64-3.6/build/src.linux-x86_64-3.6/mllmodule.o: \
  /home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include/numpy/npy_1_7_deprecated_api.h \
  /home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include/numpy/old_defines.h \
  /home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include/numpy/__multiarray_api.h \
- /home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include/numpy/npy_interrupt.h \
- /home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include/numpy/npy_3kcompat.h \
- /home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include/numpy/npy_common.h \
- /home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include/numpy/ndarrayobject.h
+ /home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include/numpy/npy_interrupt.h
 commandline: -Ibuild/src.linux-x86_64-3.6/build/src.linux-x86_64-3.6 -I/home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include -I/home/bianca/miniconda3/envs/xcmbneed/include/python3.6m -c-std=legacy-Ibuild/src.linux-x86_64-3.6/build/src.linux-x86_64-3.6 -I/home/bianca/miniconda3/envs/xcmbneed/lib/python3.6/site-packages/numpy/core/include -I/home/bianca/miniconda3/envs/xcmbneed/include/python3.6m

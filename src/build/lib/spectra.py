@@ -183,18 +183,24 @@ class NeedletTheory(object):
         self.npoints = npoints
         self.norm = self.get_normalization()
 
-    def ell_binning(self, jmax, lmax, ell):
+    def ell_binning(self, jmax, lmax):#, ell):
         """
         Returns the binning scheme in  multipole space
         """
-        assert(np.floor(self.B**(jmax+1)) <= ell.size-1) 
-        ellj = []
+        #assert(np.floor(self.B**(jmax+1)) <= ell.size-1) 
+        ell  = np.arange(lmax+1)*np.ones((jmax+1, lmax+1))
+        bjl  = np.zeros((jmax+1,lmax+1))
+        ellj =np.zeros((jmax+1, lmax+1))
+        #delta_gammaj = np.zeros((jmax+1, jmax+1))
         for j in range(jmax+1):
-            lmin = np.floor(self.B**(j-1))
-            lmax = np.floor(self.B**(j+1))
-            ell1  = np.arange(lmin, lmax+1, dtype=int)
-            ellj.append(ell1)
-        return np.asarray(ellj, dtype=object)
+            b2 = self.b_need(ell[j]/self.B**j)**2
+            b2[np.isnan(b2)] = 0.
+            b2[b2!=0] = 1.
+            bjl[j,:] = b2
+            ellj[j,:] = ell[j,:]*bjl[j,:]
+        return ellj 
+
+
     
     def get_B_parameter(self):
         """
@@ -258,26 +264,28 @@ class NeedletTheory(object):
         """
         return np.sqrt(np.abs(self.phi_need(xi/self.B)-self.phi_need(xi)))
 
-    def cl2betaj(self, jmax, cl):
+    def cl2betaj(self, jmax, cl, lmax):
         """
         Returns needlet power spectrum \beta_j given an angular power spectrum Cl.
         """
-        
-        #print(cl.size)
-        #print(np.floor(self.B**(jmax+1)))
-
-        assert(np.floor(self.B**(jmax+1)) <= cl.size-1) 
+        #assert(np.floor(self.B**(jmax+1)) <= cl.size-1) 
         #print( np.floor(self.B**(jmax+1)), cl.size-1)
- 
+        filename = f'b_need/bneed_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat'
+        ell = np.arange(0, lmax+1)
         betaj = np.zeros(jmax+1)
+        bjl = np.zeros((jmax+1, lmax+1))
         for j in range(jmax+1):
-            lmin = np.ceil(self.B**(j-1))
-            lmax = np.floor(self.B**(j+1))
-            ell  = np.arange(lmin, lmax+1, dtype=np.int)
-            #print(lmin, lmax, j)
-            b2   = self.b_need(ell/self.B**j)*self.b_need(ell/self.B**j)
-            #print(b2)
+            #lmin = np.floor(self.B**(j-1))
+            #lmax = np.floor(self.B**(j+1))
+            #if lmax > cl.size-1:
+            #    lmax=cl.size-1
+            #ell  = np.arange(lmin, lmax+1, dtype=np.int)
+            #b2   = self.b_need(ell/self.B**j)*self.b_need(ell/self.B**j)
+            b2 = self.b_need(ell/self.B**j)**2
+            b2[np.isnan(b2)] = 0.
+            bjl[j, :] = b2
             betaj[j] = np.sum(b2*(2.*ell+1.)/4./np.pi*cl[ell])
+        np.savetxt(filename, bjl)
         return betaj
     
     #def cl_binned(self, jmax, cl):
@@ -372,7 +380,7 @@ class NeedletTheory(object):
             b2 = self.b_need(ell/self.B**j)**2
             b2[np.isnan(b2)] = 0.
             bjl[j,:] = b2*(2*ell+1.) 
-        return (bjl*np.dot(Mll, cl[:lmax+1])).sum(axis=1)/(4*np.pi)#np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
+        return (bjl*np.dot(Mll, cl[2:lmax+1])).sum(axis=1)/(4*np.pi)#np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
     
     def sigmaJ(self, cl, wl, jmax, lmax):
         """
@@ -417,16 +425,21 @@ class NeedletTheory(object):
             for j in range(jmax+1):
                 l_min = np.floor(self.B**(j-1))
                 l_max = np.floor(self.B**(j+1))
+                if l_max > cltg.size-1:
+                    l_max=cltg.size-1
                 ell = np.arange(l_min,l_max+1, dtype=np.int)
-                #print(ell, ell.shape)
-                pixwin = hp.sphtfunc.pixwin(64, lmax = ell.max())
-                #print(l_max, ell.max(), pixwin, ell, self.b_need(ell/self.B**j).shape) 
-                #delta_beta_j_squared[j] = np.sum(((2*ell+1)/(16*np.pi**2))*(pixwin[ell.min():(ell.max()+1)]*self.b_need(ell/self.B**j)**4)*(cltg[ell]**2 + cltt[ell]*clgg[ell]))
                 delta_beta_j_squared[j] = np.sum(((2*ell+1)/(16*np.pi**2))*(self.b_need(ell/self.B**j)**4)*(cltg[ell]**2 + cltt[ell]*clgg_tot[ell]))
-                #print(delta_beta_j_squared)
-                #delta_beta_j_squared[j]= np.sum
-                #cov_diag[j] = cov[j][j]
-            #print(delta_beta_j_squared.shape)
+                #ell  = np.arange(0, lmax+1, dtype=int)
+                #bjl  = np.zeros((jmax+1,lmax+1))
+                #for j in range(jmax+1):
+                #    b2 = self.b_need(ell/self.B**j)**2
+                #    b2[np.isnan(b2)] = 0.
+                #    bjl[j,:] = b2*(2*ell+1.) 
+                #    covll = np.zeros(lmax+1)
+                #    for ell1 in range(lmax+1):
+                #        covll[ell1] = (cltg[ell1]**2+cltt[ell1]*clgg_tot[ell1])/(2.*ell1+1)
+                #    delta_beta_j_squared = np.matmul(bjl, covll)/(4*np.pi)**2
+                #    print(delta_beta_j_squared.shape)
             return np.sqrt(delta_beta_j_squared)
     
 
@@ -444,7 +457,7 @@ class NeedletTheory(object):
             clgg_tot = clgg
 
         Mll  = self.get_Mll(wl, lmax=lmax)
-        ell  = np.arange(0, lmax+1, dtype=int)
+        ell  = np.arange(lmax+1, dtype=int)
         bjl  = np.zeros((jmax+1,lmax+1))
         #delta_gammaj = np.zeros((jmax+1, jmax+1))
         for j in range(jmax+1):

@@ -14,7 +14,7 @@ import seaborn as sns
 
 sns.set()
 sns.set(style = 'white')
-sns.set_palette('husl')
+sns.set_palette('husl', n_colors=8)
 
 #plt.style.use("dark_background")
 import matplotlib as mpl
@@ -61,7 +61,7 @@ nside = simparams['nside']
 
 lmax = 256
 nsim = 1000
-jmax=8#round(np.log(lmax*1.00000000000000222045e+00)/np.log(B))
+jmax=12#8
 
 # Paths
 fname_xcspectra = 'spectra/inifiles/EUCLID_fiducial_lmin0.dat'
@@ -97,10 +97,11 @@ simulations.Run(nsim, WantTG = True, EuclidSims=True)
 
 # Needlet Analysis
 myanalysis = analysis.NeedAnalysis(jmax, lmax, out_dir, simulations)
-print(myanalysis.B)
+B=myanalysis.B
 
 # Theory Needlet spectra
 need_theory = spectra.NeedletTheory(myanalysis.B)
+ell_binning=need_theory.ell_binning(jmax, lmax)
 
 # Computing simulated Cls 
 print("...computing Betajs for simulations...")
@@ -136,11 +137,11 @@ beta_j_sim_2_T_mask = betaj_sims_TS_galT_mask[num_sim_2,:]
 
 # Beta_j THEORY
 
-betatg    = need_theory.cl2betaj(jmax=jmax, cl=cl_theory_tg)
-beta_norm = need_theory.cl2betaj(jmax=jmax, cl=np.ones(xcspectra.cltg.size))
+betatg    = need_theory.cl2betaj(jmax=jmax, cl=cl_theory_tg, lmax=lmax)
+beta_norm = need_theory.cl2betaj(jmax=jmax, cl=np.ones(xcspectra.cltg.size), lmax=lmax)
 delta = need_theory.delta_beta_j(jmax=jmax, cltg=cl_theory_tg, cltt=cl_theory_tt, clgg=cl_theory_gg)
 delta_noise = need_theory.delta_beta_j(jmax=jmax, cltg=cl_theory_tg, cltt=cl_theory_tt, clgg=cl_theory_gg, noise_gal_l=Nll)
-#print(f'diff delta delta noise ={delta_noise-delta}')
+#print(f'betatg ={betatg}')
 
 diff_cov = np.abs((np.sqrt(np.diag(cov_TS_galT)[1:])-delta[1:]))/delta[1:]*100
 diff_cov_mean = np.mean(diff_cov[1:jmax+1])
@@ -405,12 +406,14 @@ plt.suptitle(r'EuclidxPlanck Mask PCL $ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'
 ax = fig.add_subplot(1, 1, 1)
 
 #ax.plot(myanalysis.jvec[1:jmax+1], gammaJ_tg[1:jmax+1], label='Theory')
-ax.plot(np.arange(2, lmax+1), (np.diag(cov_pcl_sim)[2:]-np.diag(cov_pcl)[2:])/np.diag(cov_pcl)[2:]*100 ,'o',ms=10,color='#2b7bbc')#, label='MASK')
+ax.plot(np.arange(2, lmax+1), ((np.diag(cov_pcl_sim)[2:]-np.diag(cov_pcl)[2:])/np.diag(cov_pcl)[2:])*100 ,'o',ms=10,color='#2b7bbc')#, label='MASK')
 #ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_TS_galT)[1:])-delta_noise[1:])/delta_noise[1:]*100 , label='FULL SKY')
 ax.axhline(ls='--', c='k')
 #ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
+ax.set_xticks(np.arange(2, lmax+1,10))
+ax.set_xticklabels(np.arange(2, lmax+1,10),rotation=40)
 ax.set_xlabel(r'$\ell$')
 #ax.set_ylabel(r'% $(\Delta \Gamma)^2_{\mathrm{sims}}/(\Delta \Gamma)^2_{\mathrm{analytic}}$ - 1')
 ax.set_ylabel(r'% diag(sim cov)/diag(analyt cov)-1')

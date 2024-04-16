@@ -270,7 +270,7 @@ class NeedletTheory(object):
         """
         #assert(np.floor(self.B**(jmax+1)) <= cl.size-1) 
         #print( np.floor(self.B**(jmax+1)), cl.size-1)
-        filename = f'b_need/bneed_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat'
+        
         ell = np.arange(0, lmax+1)
         betaj = np.zeros(jmax+1)
         bjl = np.zeros((jmax+1, lmax+1))
@@ -285,7 +285,7 @@ class NeedletTheory(object):
             b2[np.isnan(b2)] = 0.
             bjl[j, :] = b2
             betaj[j] = np.sum(b2*(2.*ell+1.)/4./np.pi*cl[ell])
-        np.savetxt(filename, bjl)
+        
         return betaj
     
     #def cl_binned(self, jmax, cl):
@@ -376,11 +376,13 @@ class NeedletTheory(object):
         Mll  = self.get_Mll(wl, lmax=lmax)
         ell  = np.arange(0, lmax+1, dtype=np.int)
         bjl  = np.zeros((jmax+1,lmax+1))
+        filename = f'b_need/bneed_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat'
         for j in range(jmax+1):
             b2 = self.b_need(ell/self.B**j)**2
             b2[np.isnan(b2)] = 0.
-            bjl[j,:] = b2*(2*ell+1.) 
-        return (bjl*np.dot(Mll, cl[:lmax+1])).sum(axis=1)/(4*np.pi)#np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
+            bjl[j,:] = b2
+        np.savetxt(filename, bjl) 
+        return (bjl*(2*ell+1.)*np.dot(Mll, cl[:lmax+1])).sum(axis=1)/(4*np.pi)#np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
     
     def sigmaJ(self, cl, wl, jmax, lmax):
         """
@@ -457,7 +459,7 @@ class NeedletTheory(object):
             clgg_tot = clgg
 
         Mll  = self.get_Mll(wl, lmax=lmax)
-        ell  = np.arange(0, lmax+1, dtype=int)
+        ell  = np.arange(lmax+1, dtype=int)
         bjl  = np.zeros((jmax+1,lmax+1))
         #delta_gammaj = np.zeros((jmax+1, jmax+1))
         for j in range(jmax+1):

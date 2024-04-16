@@ -4,13 +4,8 @@ from scipy.stats import chi2
 import matplotlib.pyplot as plt
 
 
-<<<<<<< HEAD
-cov = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/TG_512/cov_TS_galS_jmax10_B1.9467970312828855_nside512.dat', unpack=True)#np.loadtxt('output_needlet_TG/Planck/TG_256_mask_noise_nonoisePlanck/cov_TT_galT_jmax12_B = 1.74 $_nside256_mask.dat', unpack=True)
-beta_j_sims = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/TG_512/betaj_sims_TS_galS_jmax10_B1.9467970312828855_nside512.dat', unpack=True)#np.loadtxt('output_needlet_TG/Planck/TG_256_mask_noise_nonoisePlanck/betaj_sims_TT_galT_jmax12_B_1.7422102429630426_nside256_fsky_0.7004634737968445.dat', unpack=True)
-=======
 cov = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG_Null/TGNull_512_Planck/cov_TS_galS_jmax12_B1.7422102429630426_nside512.dat', unpack=True)#np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/TG_512/cov_TS_galS_jmax10_B1.9467970312828855_nside512.dat', unpack=True)#np.loadtxt('output_needlet_TG/Planck/TG_256_mask_noise_nonoisePlanck/cov_TT_galT_jmax12_B = 1.74 $_nside256_mask.dat', unpack=True)
 beta_j_sims = np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG_Null/TGNull_512_Planck/betaj_sims_TS_galS_jmax12_B1.74_nside512.dat', unpack=True)#np.loadtxt('/ehome/bdecaro/xcmbneed/src/output_needlet_TG/Planck/TG_512/betaj_sims_TS_galS_jmax10_B1.9467970312828855_nside512.dat', unpack=True)#np.loadtxt('output_needlet_TG/Planck/TG_256_mask_noise_nonoisePlanck/betaj_sims_TT_galT_jmax12_B_1.7422102429630426_nside256_fsky_0.7004634737968445.dat', unpack=True)
->>>>>>> euclid_implementation
 
 beta_j_mean = np.mean(beta_j_sims, axis=1)
 
@@ -46,8 +41,6 @@ print('chi squared=', chi_squared, chi2.cdf(chi_squared, beta_j_mean.shape[0]-1)
 #        temp_n[i] += cov_inv[i][j]*(beta_j_sim_400_null[j]-beta_j_sim_400[j])
 #    chi_squared_null += (beta_j_sim_400_null[i]-beta_j_sim_400[i]).T*temp_n[i]
 #print('chi squared null =' ,chi_squared_null, chi2.cdf(chi_squared_null, 12), chi2.cdf(29.8, 12))
-<<<<<<< HEAD
-=======
 simparams = {'nside'   : 512,
              'ngal'    : 5.76e5,
  	     	 'ngal_dim': 'ster',
@@ -61,7 +54,6 @@ nsims = 500
 
 fname_xcspectra = f'/ehome/bdecaro/xcmbneed/src/spectra/inifiles/CAMBNull_planck.dat'#'spectra/CAMBSpectra.dat'
 xcspectra = spectra.XCSpectraFile(fname_xcspectra, WantTG = True)
->>>>>>> euclid_implementation
 
 simulations = sims.KGsimulations(xcspectra, sims_dir, simparams, WantTG = True)
 #simulations.Run(nsim, WantTG = True)

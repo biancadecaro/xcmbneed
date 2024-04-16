@@ -13,26 +13,6 @@ from IPython import embed
 
 
 import seaborn as sns
-<<<<<<< HEAD
-
-# Matplotlib defaults ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#rc('text',usetex=True)
-#rc('font',**{'family':'serif','serif':['Computer Modern']})
-plt.rcParams['axes.linewidth']  = 5.
-plt.rcParams['axes.labelsize']  =30
-plt.rcParams['xtick.labelsize'] =30
-plt.rcParams['ytick.labelsize'] =30
-plt.rcParams['xtick.major.size'] = 30
-plt.rcParams['ytick.major.size'] = 30
-plt.rcParams['xtick.minor.size'] = 30
-plt.rcParams['ytick.minor.size'] = 30
-plt.rcParams['legend.fontsize']  = 'large'
-plt.rcParams['legend.frameon']  = False
-plt.rcParams['axes.labelsize'] = 'large'
-plt.rcParams['axes.titlesize'] = 'large'
-rcParams["errorbar.capsize"] = 15
-#
-=======
 sns.set()
 sns.set(style = 'white')
 sns.set_palette('husl')
@@ -60,20 +40,13 @@ plt.rcParams['axes.labelsize'] = 'medium'
 plt.rcParams['axes.titlesize'] = '20'
 rcParams["errorbar.capsize"] = 5
 ##
->>>>>>> euclid_implementation
 plt.rcParams['xtick.major.width'] = 1
 plt.rcParams['ytick.major.width'] = 1
 plt.rcParams['xtick.minor.width'] = 1
 plt.rcParams['ytick.minor.width'] = 1
-<<<<<<< HEAD
-plt.rcParams['font.size'] = 40
-plt.rcParams['lines.linewidth']  = 5.
-#plt.rcParams['backend'] = 'WX'
-=======
 plt.rcParams['font.size'] = 20
 plt.rcParams['lines.linewidth']  = 3.
 ##plt.rcParams['backend'] = 'WX'
->>>>>>> euclid_implementation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # embed()
 
@@ -172,17 +145,6 @@ std = np.zeros(len(myanalysis.jvec))
 for j in range(len(myanalysis.jvec)):
     std[j]= np.sqrt(np.sum(betaj_sims_TS_galS[:,j]**2)/(nsim-1))
 
-<<<<<<< HEAD
-print(delta, np.sqrt(np.diag(cov_TS_galS)), std)
-    
-fig = plt.figure(figsize=(29,17))
-plt.suptitle(r'$D = %1.2f $' %myanalysis.B + r'$ ,~N_{side} =$'+str(simparams['nside']) + r',$~N_{sim} = $'+str(nsim))
-ax = fig.add_subplot(1, 1, 1)
-ax.errorbar(myanalysis.jvec-0.15, betaj_TS_galS_mean, yerr=std,fmt='o', label = 'Mean simulation')
-ax.errorbar(myanalysis.jvec-0.15, betatg, yerr=delta,fmt='o', label = 'Theory')
-#ax.errorbar(myanalysis.jvec-0.15, beta_j_sim_400, yerr=delta, fmt='ro', label = 'betaj sim')np.sqrt(np.diag(cov_TS_galS))
-ax.set_ylabel(r'$\beta_j$')
-=======
 print('delta=',delta, '\ndiag cov=',np.sqrt(np.diag(cov_TS_galS)))
     
 fig = plt.figure(figsize=(17,10))
@@ -193,7 +155,6 @@ ax.errorbar(myanalysis.jvec, betatg, yerr=delta/np.sqrt(nsim),fmt='o', label = '
 #ax.errorbar(myanalysis.jvec-0.15, beta_j_sim_400, yerr=delta, fmt='ro', label = 'betaj sim')np.sqrt(np.diag(cov_TS_galS))
 ax.axhline(color='grey',ls='--')
 ax.set_ylabel(r'$\beta^{\, \mathrm{TG}}_j$')
->>>>>>> euclid_implementation
 ax.set_xlabel(r'j')
 ax.yaxis.set_major_formatter(formatter) 
 plt.legend()
