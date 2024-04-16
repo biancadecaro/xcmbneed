@@ -142,8 +142,8 @@ sns.heatmap(corr_TS_galS, annot=True, fmt='.2f', cmap  = 'viridis',mask=mask_, a
 #ax3.set_title(r'Corr $\delta^T \times \kappa^T$ Masked')
 #sns.heatmap(corr_kappaT_deltaT_mask, annot=True, fmt='.2f', mask=mask_,ax=ax3)
 fig.tight_layout()
-plt.savefig(cov_dir+'corr_TS_galS_jmax'+str(jmax)+'_B = %1.2f ' %myanalysis.B +'_nsim'+str(nsim)+'_nside'+str(simparams['nside'])+'.png')
-
+#plt.savefig(cov_dir+'corr_TS_galS_jmax'+str(jmax)+'_B = %1.2f ' %myanalysis.B +'_nsim'+str(nsim)+'_nside'+str(simparams['nside'])+'.png')
+plt.show()
 
 # Theory + Normalization Needlet power spectra
 
@@ -169,8 +169,8 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'$\beta_j^{Tgal}$')
 
 fig.tight_layout()
-plt.savefig(out_dir+f'betaj_theory_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
-
+#plt.savefig(out_dir+f'betaj_theory_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
+plt.show()
 
 fig = plt.figure(figsize=(25,15))
 

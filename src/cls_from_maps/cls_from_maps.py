@@ -1,5 +1,6 @@
 import numpy as np
 import healpy as hp
+import matplotlib.pyplot as plt
 
 nsim = 1000
 nside = 128
@@ -7,16 +8,29 @@ npix= hp.nside2npix(nside)
 lmax=256
 lmin=2
 
-sims_dir = f'/ehome/bdecaro/xcmbneed/src/sims/Euclid_sims_Marina/NSIDE{nside}/'#f'sims/Needlet/Planck/TGsims_{nside}_planck_2_lmin{lmin}/'
+sims_dir = f'../sims/Euclid_sims_Marina/NSIDE{nside}/'#f'sims/Needlet/Planck/TGsims_{nside}_planck_2_lmin{lmin}/'
 cl_TT_mask_sims = np.zeros((nsim,lmax+1))
 cl_TT_sims = np.zeros((nsim,lmax+1))
 cl_GG_sims = np.zeros((nsim,lmax+1))
 cl_TG_sims = np.zeros((nsim,lmax+1))
 cl_TG_mask_sims = np.zeros((nsim,lmax+1))
 cl_GG_mask_sims = np.zeros((nsim,lmax+1))
-#mask = hp.read_map('/ehome/bdecaro/xcmbneed/src/mask/EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside=128.fits', verbose=False)
-mask = hp.read_map(f'/ehome/bdecaro/xcmbneed/src/mask/EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits')
+
+mask = hp.read_map(f'../mask/EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits')
 fsky = np.mean(mask)
+
+fname_T = sims_dir + f'map_nbin1_NSIDE{nside}_lmax{lmax}_00678_T.fits' #sims_dir + "sim_" + ('%04d' % n) + "_galT_" + ('%04d' % nside) + ".fits"
+fname_gal = sims_dir + f'map_nbin1_NSIDE{nside}_lmax{lmax}_00678_g1noise.fits' # sims_dir + "sim_" + ('%04d' % n) + "_TS_" + ('%04d' % nside) + ".fits"
+mapT = hp.read_map(fname_T, verbose=False)
+mapgal = hp.read_map(fname_gal, verbose=False)
+mapT_mask = hp.read_map(fname_T, verbose=False)
+mapgal_mask = hp.read_map(fname_gal, verbose=False)
+bad_v = np.where(mask==0)
+mapT_mask[bad_v]=hp.UNSEEN
+mapgal_mask[bad_v]=hp.UNSEEN
+hp.mollview(mapT_mask,cmap= 'viridis', title= 'T maps-masked')
+plt.show()
+
 for n in range(nsim):
     fname_gal = sims_dir + f'map_nbin1_NSIDE{nside}_lmax{lmax}_{n+1:05d}_g1noise.fits' # sims_dir + "sim_" + ('%04d' % n) + "_TS_" + ('%04d' % nside) + ".fits"
     fname_T = sims_dir + f'map_nbin1_NSIDE{nside}_lmax{lmax}_{n+1:05d}_T.fits' #sims_dir + "sim_" + ('%04d' % n) + "_galT_" + ('%04d' % nside) + ".fits"

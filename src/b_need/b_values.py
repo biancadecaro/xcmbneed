@@ -1,7 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-<<<<<<< HEAD
-=======
 import seaborn as sns
 sns.set()
 
@@ -14,7 +12,6 @@ mpl.rc('ytick', direction='in', right=True, left = True)
 plt.style.use("dark_background")
 
 
->>>>>>> euclid_implementation
 from matplotlib import rc, rcParams
 plt.rcParams['axes.linewidth']  = 5.
 plt.rcParams['axes.labelsize']  =30
@@ -38,11 +35,7 @@ plt.rcParams['font.size'] = 40
 plt.rcParams['lines.linewidth']  = 5.
 
 
-<<<<<<< HEAD
-b_need_1p5 = np.loadtxt('/ehome/bdecaro/xcmbneed/src/b_values_B=1.50.txt')
-=======
 b_need_1p5 = np.loadtxt('b_values_B=1.50.txt')
->>>>>>> euclid_implementation
 
 print(b_need_1p5, b_need_1p5.shape[0]) #dovrebbe essere j righe e l colonne
 
@@ -65,13 +58,9 @@ plt.tight_layout()
 #plt.savefig('b_need_D1.47_log.png')
 #plt.savefig('b_need_D1.47_j6.png')
 
-<<<<<<< HEAD
-b_need_1p7 = np.loadtxt('/ehome/bdecaro/xcmbneed/src/b_values_B=1.70.txt')
-=======
 b_need_1p7 = np.loadtxt('b_values_B=1.70.txt')
->>>>>>> euclid_implementation
 
-print(b_need_1p7, b_need_1p7.shape[0]) #dovrebbe essere j righe e l colonne
+print(b_need_1p7.shape) #dovrebbe essere j righe e l colonne
 
 fig, ax1  = plt.subplots(1,1,figsize=(22,15)) 
 
@@ -92,13 +81,9 @@ plt.tight_layout()
 #plt.savefig('b_need_D1.70_log.png')
 #plt.savefig('b_need_D1.70_j6.png')
 
-<<<<<<< HEAD
-b_need_1p83 = np.loadtxt('/ehome/bdecaro/xcmbneed/src/b_values_B=1.83.txt')
-=======
 b_need_1p83 = np.loadtxt('b_values_B=1.83.txt')
->>>>>>> euclid_implementation
 
-print(b_need_1p83, b_need_1p83.shape[0]) #dovrebbe essere j righe e l colonne
+print(b_need_1p83.shape) #dovrebbe essere j righe e l colonne
 
 fig, ax1  = plt.subplots(1,1,figsize=(22,15)) 
 
@@ -116,21 +101,13 @@ ax1.set_title('D = 1.83')#, fontsize = 25)
 plt.tight_layout()
 #plt.plot(b_need[6])
 
-<<<<<<< HEAD
-plt.savefig('b_need_D1.83_log.png')
-#plt.savefig('b_need_D1.83_j6.png')
-
-
-b_need_1p95 = np.loadtxt('/ehome/bdecaro/xcmbneed/src/b_values_B=1.95.txt')
-=======
 plt.savefig('b_need_D1.83_log_dark_bg.png')
 #plt.savefig('b_need_D1.83_j6.png')
 
 
 b_need_1p95 = np.loadtxt('b_values_B=1.95.txt')
->>>>>>> euclid_implementation
 
-print(b_need_1p95, b_need_1p95.shape[0]) #dovrebbe essere j righe e l colonne
+print(b_need_1p95.shape) #dovrebbe essere j righe e l colonne
 
 fig, ax1  = plt.subplots(1,1,figsize=(22,15)) 
 
@@ -148,9 +125,5 @@ ax1.set_title('D = 1.95')#, fontsize = 25)
 plt.tight_layout()
 #plt.plot(b_need[6])
 
-<<<<<<< HEAD
-plt.savefig('b_need_D1.95_log.png')
-=======
 plt.savefig('b_need_D1.95_log_dark_bg.png')
->>>>>>> euclid_implementation
 #plt.savefig('b_need_D1.95_j6.png')

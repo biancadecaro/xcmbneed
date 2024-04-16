@@ -14,7 +14,7 @@ import seaborn as sns
 
 sns.set()
 sns.set(style = 'white')
-sns.set_palette('husl')
+sns.set_palette('husl', n_colors=8)
 
 #plt.style.use("dark_background")
 import matplotlib as mpl
@@ -59,27 +59,26 @@ simparams = {'nside'   : 128,
 
 nside = simparams['nside']
 
-jmax = 12
 lmax = 256
 nsim = 1000
-
+jmax=12#8
 
 # Paths
-fname_xcspectra = '/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial_lmin0.dat'
-sims_dir        = f'/ehome/bdecaro/xcmbneed/src/sims/Euclid_sims_Marina/NSIDE{nside}/'
+fname_xcspectra = 'spectra/inifiles/EUCLID_fiducial_lmin0.dat'
+sims_dir        = f'sims/Euclid_sims_Marina/NSIDE{nside}/'
 out_dir         = f'output_needlet_TG/EUCLID/Mask_noise/TG_{nside}_nsim{nsim}_nuova_mask/'
 path_inpainting = 'inpainting/inpainting.py'
 #cov_dir 		= f'covariance/EUCLID/Mask_noise/TG_{nside}_nsim{nsim}_4/'
 #if not os.path.exists(cov_dir):
 #        os.makedirs(cov_dir)
 
-cl_theory = np.loadtxt('/ehome/bdecaro/xcmbneed/src/spectra/inifiles/EUCLID_fiducial_lmin0.dat')
+cl_theory = np.loadtxt('spectra/inifiles/EUCLID_fiducial_lmin0.dat')
 ell_theory = cl_theory[0]
 cl_theory_tt = cl_theory[1]
 cl_theory_tg = cl_theory[2]
 cl_theory_gg = cl_theory[3]
 
-mask = hp.read_map(f'/ehome/bdecaro/xcmbneed/src/mask/EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits')
+mask = hp.read_map(f'mask/EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits')
 fsky = np.mean(mask)
 print(f'fsky={fsky}')
 #print(cl_theory_gg.shape[0])
@@ -98,9 +97,11 @@ simulations.Run(nsim, WantTG = True, EuclidSims=True)
 
 # Needlet Analysis
 myanalysis = analysis.NeedAnalysis(jmax, lmax, out_dir, simulations)
+B=myanalysis.B
 
 # Theory Needlet spectra
 need_theory = spectra.NeedletTheory(myanalysis.B)
+ell_binning=need_theory.ell_binning(jmax, lmax)
 
 # Computing simulated Cls 
 print("...computing Betajs for simulations...")
@@ -136,11 +137,11 @@ beta_j_sim_2_T_mask = betaj_sims_TS_galT_mask[num_sim_2,:]
 
 # Beta_j THEORY
 
-betatg    = need_theory.cl2betaj(jmax=jmax, cl=cl_theory_tg)
-beta_norm = need_theory.cl2betaj(jmax=jmax, cl=np.ones(xcspectra.cltg.size))
+betatg    = need_theory.cl2betaj(jmax=jmax, cl=cl_theory_tg, lmax=lmax)
+beta_norm = need_theory.cl2betaj(jmax=jmax, cl=np.ones(xcspectra.cltg.size), lmax=lmax)
 delta = need_theory.delta_beta_j(jmax=jmax, cltg=cl_theory_tg, cltt=cl_theory_tt, clgg=cl_theory_gg)
 delta_noise = need_theory.delta_beta_j(jmax=jmax, cltg=cl_theory_tg, cltt=cl_theory_tt, clgg=cl_theory_gg, noise_gal_l=Nll)
-#print(f'diff delta delta noise ={delta_noise-delta}')
+#print(f'betatg ={betatg}')
 
 diff_cov = np.abs((np.sqrt(np.diag(cov_TS_galT)[1:])-delta[1:]))/delta[1:]*100
 diff_cov_mean = np.mean(diff_cov[1:jmax+1])
@@ -174,9 +175,9 @@ axs[1].set_title(r'Corr $T^T\times gal^T$ Signal + shot noise Masked')
 sns.heatmap(corr_TS_galT_mask, annot=True, fmt='.2f',cmap  = 'crest', mask=mask_, ax=axs[1])
 #
 plt.tight_layout()
-plt.savefig(out_dir+f'total_corr_T_gal_noise_mask_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}.png') #questa
+#plt.savefig(out_dir+f'total_corr_T_gal_noise_mask_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}.png') #questa
+plt.show()
 #plt.savefig(f'plot_tesi/Euclid/total_corr_T_gal_noise_mask_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}.png')
-
 
 # Sims mean spectrum + one sims spectrum TOTAL SIGNAL
 
@@ -225,10 +226,10 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'$\hat{\beta}_j^{\mathrm{TG}}$')
 
 fig.tight_layout()
-plt.savefig(out_dir+f'betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+#plt.savefig(out_dir+f'betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
 #plt.savefig(f'plot_tesi/Euclid/betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
 #plt.savefig(f'plot_tesi/Euclid/betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
-
+plt.show()
 
 
 #### RELATIVE DIFFERENCE THEORY + SIMULATIONS MASK SKY
@@ -253,10 +254,10 @@ ax.set_ylabel(r'$\langle \hat{\beta}_j^{\mathrm{TG}} \rangle/\beta_j^{\mathrm{TG
 #ax.set_ylim([-0.3,1.3])
 
 fig.tight_layout()
-plt.savefig(out_dir+f'betaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+#plt.savefig(out_dir+f'betaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
 #plt.savefig(f'plot_tesi/Euclid/betaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
 #plt.savefig(f'plot_tesi/Euclid/betaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
-
+plt.show()
 
 #############################################
 
@@ -299,9 +300,9 @@ ax.set_ylabel(r'$\langle \tilde{\Gamma}_j^{TG} \rangle/\tilde{\Gamma}_j^{TG, th}
 
 fig.tight_layout()
 #plt.savefig(out_dir+f'gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
-plt.savefig(f'plot_tesi/Euclid/gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
-plt.savefig(f'plot_tesi/Euclid/gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
-
+#plt.savefig(f'plot_tesi/Euclid/gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
+#plt.savefig(f'plot_tesi/Euclid/gammaj_mean_T_gal_noise_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
+plt.show()
 ### SPECTRUM  CUT SKY
 
 fig = plt.figure(figsize=(17,10))
@@ -322,10 +323,10 @@ ax.set_ylabel(r'$\tilde{\Gamma}^{\mathrm{\,TG}}_j$')
 
 fig.tight_layout()
 
-plt.savefig(out_dir+f'gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')#questa
+#plt.savefig(out_dir+f'gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')#questa
 #plt.savefig(f'plot_tesi/Euclid/gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
 #plt.savefig(f'plot_tesi/Euclid/gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
-
+plt.show()
 diff_cov_mask = 100*np.abs(np.diag(cov_TS_galT_mask)[1:]-np.diag(delta_gammaj)[1:])/np.diag(delta_gammaj)[1:]
 diff_cov_mean_mask = np.mean(diff_cov_mask)
 print(f'diff cov mask={diff_cov_mask}, diff cov mean={diff_cov_mean_mask}')
@@ -350,9 +351,9 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'% $(\Delta \Gamma)^2_{\mathrm{sims}}/(\Delta \Gamma)^2_{\mathrm{analytic}}$ - 1')
 
 fig.tight_layout()
-plt.savefig(out_dir+f'diff_cov_gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+#plt.savefig(out_dir+f'diff_cov_gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
 #plt.savefig(f'plot_tesi/Euclid/EUCLID_VALIDATION_diff_cov_gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
-
+plt.show()
 ###PSEUDO
 def cov_cl(cltg,cltt, clgg, lmax,lmin, fsky=1.,noise_gal_l=None):
     """
@@ -392,7 +393,7 @@ def cov_pseudo_cl(cltg,cltt, clgg, wl, lmax, noise_gal_l=None):
         for ll,ell2 in enumerate(ell):
             covll[l,ll] = Mll[l,ll]*(cltg[l]*cltg[ll]+np.sqrt(cltt[l]*cltt[ll]*clgg_tot[l]*clgg_tot[ll]))/(2.*ell1+1)
     return covll
-cls_tg = np.loadtxt('/ehome/bdecaro/xcmbneed/src/cls_from_maps/EUCLID/cls_Tgalnoise_anafast_nside128_lmax256_Euclidnoise_Marina_nsim1000_fsky0.36.dat')
+cls_tg = np.loadtxt('cls_from_maps/EUCLID/cls_Tgalnoise_anafast_nside128_lmax256_Euclidnoise_Marina_nsim1000_fsky0.36.dat')
 
 cov_pcl_sim = np.cov(cls_tg.T)
 
@@ -405,17 +406,21 @@ plt.suptitle(r'EuclidxPlanck Mask PCL $ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'
 ax = fig.add_subplot(1, 1, 1)
 
 #ax.plot(myanalysis.jvec[1:jmax+1], gammaJ_tg[1:jmax+1], label='Theory')
-ax.plot(np.arange(2, lmax+1), (np.diag(cov_pcl_sim)[2:]-np.diag(cov_pcl)[2:])/np.diag(cov_pcl)[2:]*100 ,'o',ms=10,color='#2b7bbc')#, label='MASK')
+ax.plot(np.arange(2, lmax+1), ((np.diag(cov_pcl_sim)[2:]-np.diag(cov_pcl)[2:])/np.diag(cov_pcl)[2:])*100 ,'o',ms=10,color='#2b7bbc')#, label='MASK')
 #ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_TS_galT)[1:])-delta_noise[1:])/delta_noise[1:]*100 , label='FULL SKY')
 ax.axhline(ls='--', c='k')
 #ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
+ax.set_xticks(np.arange(2, lmax+1,10))
+ax.set_xticklabels(np.arange(2, lmax+1,10),rotation=40)
 ax.set_xlabel(r'$\ell$')
 #ax.set_ylabel(r'% $(\Delta \Gamma)^2_{\mathrm{sims}}/(\Delta \Gamma)^2_{\mathrm{analytic}}$ - 1')
 ax.set_ylabel(r'% diag(sim cov)/diag(analyt cov)-1')
 fig.tight_layout()
-plt.savefig(out_dir+f'diff_cov_pcl_theory_T_gal_lmax{lmax}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+#plt.savefig(out_dir+f'diff_cov_pcl_theory_T_gal_lmax{lmax}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+plt.show()
+
 ################################ DIFF VARIANCE #####################################
 
 
@@ -435,9 +440,9 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'% $\sigma_{\mathrm{sims}}/\sigma_{\mathrm{analytic}}$ - 1')
 
 fig.tight_layout()
-plt.savefig(out_dir+f'diff_variance_gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+#plt.savefig(out_dir+f'diff_variance_gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
 #plt.savefig(out_dir+f'diff_variance_gammaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
-
+plt.show()
 
 
 
@@ -463,6 +468,7 @@ ax.set_ylabel(r'$\Delta \beta_j^{\mathrm{TG}} / \sigma $', fontsize=22)
 ax.set_ylim([-3,3])
 
 fig.tight_layout()
+plt.show()
 #plt.savefig(f'plot_tesi/Euclid/EUCLID_VALIDATION_diff_betaj_mean_theory_over_sigma_jmax_{jmax}_B{myanalysis.B:1.2f}_nsim{nsim}_nside{nside}.png')
 
 #plt.savefig(f'plot_tesi/Euclid/EUCLID_VALIDATION_diff_betaj_mean_theory_over_sigma_jmax_{jmax}_B{myanalysis.B:1.2f}_nsim{nsim}_nside{nside}.pdf')
@@ -489,7 +495,7 @@ axs[2].set_xlabel('j')
 
 plt.tight_layout()
 #plt.savefig(out_dir+f'needlets_estimator_TG_new_mask.png')
-
+plt.show()
 
 ######################################################################################
 ############################## SIGNAL TO NOISE RATIO #################################
@@ -588,9 +594,9 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel('Signal-to-Noise ratio')
 
 fig.tight_layout()
-plt.savefig(f'plot_tesi/Euclid/SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
-plt.savefig(f'plot_tesi/Euclid/SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
-
+#plt.savefig(f'plot_tesi/Euclid/SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+#plt.savefig(f'plot_tesi/Euclid/SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')
+plt.show()
 ## CUMULATIVE
 
 fig = plt.figure(figsize=(10,11))
@@ -618,6 +624,6 @@ ax.set_ylabel('Cumulative Signal-to-Noise ratio')
 ax.legend()
 
 fig.tight_layout()
-
-plt.savefig(f'plot_tesi/Euclid/SNR_cumulative_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
+plt.show()
+#plt.savefig(f'plot_tesi/Euclid/SNR_cumulative_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight') #questa
 #plt.savefig(f'plot_tesi/Euclid/SNR_cumulative_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.pdf', bbox_inches='tight')

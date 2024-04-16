@@ -56,13 +56,13 @@ plt.rcParams['lines.linewidth']  = 3.
 import os
 path = os.path.abspath(spectra.__file__)
 # Parameters
-simparams = {'nside'   : 512,
+simparams = {'nside'   : 128,#512,
              'ngal'    : 5.76e5, #dovrebbe importare solo per lo shot noise (noise poissoniano)
  	     	 'ngal_dim': 'ster',
 	     	 'pixwin'  : False}
 nside = simparams['nside']
 # Paths
-fname_xcspectra = '/ehome/bdecaro/xcmbneed/src/spectra/inifiles/CAMBSpectra_planck_fiducial_lmin0_2050.dat'#'spectra/inifiles/CAMBSpectra_planck.dat' 
+fname_xcspectra = 'spectra/inifiles/CAMBSpectra_planck_fiducial_lmin0_2050.dat'#'spectra/inifiles/CAMBSpectra_planck.dat' 
 sims_dir        = f'sims/Needlet/Planck/TGsims_{nside}/'#planck_2_lmin0_prova_1/'
 out_dir         = f'output_needlet_TG/Planck/TG_{nside}/'#planck_2_lmin0_prova_1/'
 path_inpainting = 'inpainting/inpainting.py'
@@ -71,8 +71,8 @@ if not os.path.exists(cov_dir):
         os.makedirs(cov_dir)
 
 jmax = 12
-lmax = 782
-nsim = 500
+lmax = 256#782
+nsim = 1000#500
 #B = 1.95
 
 #jmax = round(np.log(lmax*1.00000000000000222045e+00)/np.log(B))
@@ -156,17 +156,17 @@ sns.heatmap(corr_TS_galS, annot=True, fmt='.2f', annot_kws={"size": 10},cmap  = 
 #ax3.set_title(r'Corr $\delta^T \times \kappa^T$ Masked')
 #sns.heatmap(corr_kappaT_deltaT_mask, annot=True, fmt='.2f', mask=mask_,ax=ax3)
 fig.tight_layout()
-plt.savefig(out_dir+f'corr_TS_galS_jmax{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.png')
-plt.savefig(f'plot_tesi/PLANCK_VALIDATION_fullsky_corr_TS_galS_jmax{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
-
+#plt.savefig(out_dir+f'corr_TS_galS_jmax{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.png')
+#plt.savefig(f'plot_tesi/PLANCK_VALIDATION_fullsky_corr_TS_galS_jmax{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
+plt.show()
 # Theory + Normalization Needlet power spectra
 
-betatg    = need_theory.cl2betaj(jmax=jmax, cl=xcspectra.cltg)
-beta_norm = need_theory.cl2betaj(jmax=jmax, cl=np.ones(xcspectra.cltg.size))
+betatg    = need_theory.cl2betaj(jmax=jmax, cl=xcspectra.cltg ,lmax=lmax)
+beta_norm = need_theory.cl2betaj(jmax=jmax, cl=np.ones(xcspectra.cltg.size), lmax=lmax)
 
 np.savetxt(out_dir+f'beta_TS_galS_theoretical_fiducial_B{myanalysis.B}.dat', betatg)
 
-delta = need_theory.delta_beta_j(jmax, cltt = xcspectra.cltt, cltg = xcspectra.cltg, clgg = xcspectra.clg1g1)
+delta = need_theory.delta_beta_j(jmax=jmax, lmax=lmax,cltt = xcspectra.cltt, cltg = xcspectra.cltg, clgg = xcspectra.clg1g1)
 
 fig = plt.figure(figsize=(17,10))
 
@@ -174,21 +174,21 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 
-ax.plot(myanalysis.jvec[1:jmax], betatg[1:jmax], label='Theory')
-ax.errorbar(myanalysis.jvec[1:jmax], betaj_TS_galS_mean[1:jmax], yerr=np.sqrt(np.diag(cov_TS_galS)[1:jmax])/np.sqrt(nsim) ,color='#2b7bbc',fmt='o',ms=5,capthick=2, label='Error of the mean of the simulations')
-ax.errorbar(myanalysis.jvec[1:jmax], betaj_TS_galS_mean[1:jmax], yerr=np.sqrt(np.diag(cov_TS_galS)[1:jmax]) ,color='grey',fmt='o',ms=0,capthick=2, label='Error of simulations')
+ax.plot(myanalysis.jvec[1:jmax+1], betatg[1:jmax+1], label='Theory')
+ax.errorbar(myanalysis.jvec[1:jmax+1], betaj_TS_galS_mean[1:jmax+1], yerr=np.sqrt(np.diag(cov_TS_galS)[1:jmax+1])/np.sqrt(nsim) ,color='#2b7bbc',fmt='o',ms=5,capthick=2, label='Error of the mean of the simulations')
+ax.errorbar(myanalysis.jvec[1:jmax+1], betaj_TS_galS_mean[1:jmax+1], yerr=np.sqrt(np.diag(cov_TS_galS)[1:jmax+1]) ,color='grey',fmt='o',ms=0,capthick=2, label='Error of simulations')
 
 ax.legend(loc='best')
-ax.set_xticks(myanalysis.jvec[1:jmax])
+ax.set_xticks(myanalysis.jvec[1:jmax+1])
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
 ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'$\beta_j^{\mathrm{TG}}$')
 
 fig.tight_layout()
-plt.savefig(out_dir+f'betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
-plt.savefig(f'plot_tesi/PLANCK_VALIDATION_TEST_betaj_mean_theory_jmax_{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
-
+#plt.savefig(out_dir+f'betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
+#plt.savefig(f'plot_tesi/PLANCK_VALIDATION_TEST_betaj_mean_theory_jmax_{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
+plt.show()
 
 fig = plt.figure(figsize=(17,10))
 
@@ -197,12 +197,12 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 ax = fig.add_subplot(1, 1, 1)
 
 ax.axhline(ls='--', color='grey')
-ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/betatg[1:jmax], yerr=np.sqrt(np.diag(cov_TS_galS)[1:jmax])/(np.sqrt(nsim)*betatg[1:jmax]), fmt='o',ms=5, label=r'Variance on the mean from simulations')#, label=r'$T^S \times gal^S$, sim cov')
-ax.errorbar(myanalysis.jvec[1:jmax], (betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/betatg[1:jmax], yerr=delta[1:jmax]/(np.sqrt(nsim)*betatg[1:jmax]),color='#6d7e3f',  fmt='o',  ms=5,label=r'Variance from theory')
+ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galS_mean[1:jmax+1] -betatg[1:jmax+1])/betatg[1:jmax+1], yerr=np.sqrt(np.diag(cov_TS_galS)[1:jmax+1])/(np.sqrt(nsim)*betatg[1:jmax+1]), fmt='o',ms=5, label=r'Variance on the mean from simulations')#, label=r'$T^S \times gal^S$, sim cov')
+ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galS_mean[1:jmax+1] -betatg[1:jmax+1])/betatg[1:jmax+1], yerr=delta[1:jmax+1]/(np.sqrt(nsim)*betatg[1:jmax+1]),color='#6d7e3f',  fmt='o',  ms=5,label=r'Variance from theory')
 #print(np.sqrt(np.diag(cov_TS_galS))/(np.sqrt(nsim)*betatg) - delta/(np.sqrt(nsim)*betatg))
-print(100*(betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/betatg[1:jmax])
+print('perc diff covariance:',100*(betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/betatg[1:jmax])
 
-ax.set_xticks(myanalysis.jvec[1:jmax])
+ax.set_xticks(myanalysis.jvec[1:jmax+1])
 ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
@@ -211,9 +211,9 @@ ax.set_ylabel(r'$\frac{\langle \beta_j^{\mathrm{TG}} \rangle - \beta_j^{\mathrm{
 ax.set_ylim([-0.2,0.3])
 
 fig.tight_layout()
-plt.savefig(out_dir+f'betaj_mean_T_gal_jmax{jmax}_D{B:1.2f}_nsim{nsim}_nside{nside}.png', bbox_inches='tight')
-plt.savefig(f'plot_tesi/PLANCK_VALIDATION_betaj_ratio_mean_theory_jmax_{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
-
+#plt.savefig(out_dir+f'betaj_mean_T_gal_jmax{jmax}_D{B:1.2f}_nsim{nsim}_nside{nside}.png', bbox_inches='tight')
+#plt.savefig(f'plot_tesi/PLANCK_VALIDATION_betaj_ratio_mean_theory_jmax_{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
+plt.show()
 
 #Difference divided one sigma
 
@@ -224,20 +224,20 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 ax = fig.add_subplot(1, 1, 1)
 
 ax.axhline(ls='--', color='grey')
-ax.plot(myanalysis.jvec[1:jmax], (betaj_TS_galS_mean[1:jmax] -betatg[1:jmax])/(delta[1:jmax]/np.sqrt(nsim)),'o', ms=10,color='#2b7bbc')#, label=r'$T^S \times gal^S$, sim cov')
+ax.plot(myanalysis.jvec[1:jmax+1], (betaj_TS_galS_mean[1:jmax+1] -betatg[1:jmax+1])/(delta[1:jmax+1]/np.sqrt(nsim)),'o', ms=10,color='#2b7bbc')#, label=r'$T^S \times gal^S$, sim cov')
 #print(np.sqrt(np.diag(cov_TS_galS))/(np.sqrt(nsim)*betatg) - delta/(np.sqrt(nsim)*betatg))
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
-ax.set_xticks(myanalysis.jvec[1:jmax])
+ax.set_xticks(myanalysis.jvec[1:jmax+1])
 ax.set_xlabel(r'$j$', fontsize=22)
 ax.set_ylabel(r'$\Delta \beta_j^{\mathrm{TG}} / \sigma $', fontsize=22)
 ax.set_ylim([-2.0,2.0])
 
 fig.tight_layout()
-plt.savefig(out_dir+f'diff_betaj_mean_theory_over_sigma_T_gal_jmax{jmax}_D{B:1.2f}_nsim{nsim}_nside{nside}.png', bbox_inches='tight')
-plt.savefig(f'plot_tesi/PLANCK_VALIDATION_diff_betaj_mean_theory_over_sigma_jmax_{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
-
+#plt.savefig(out_dir+f'diff_betaj_mean_theory_over_sigma_T_gal_jmax{jmax}_D{B:1.2f}_nsim{nsim}_nside{nside}.png', bbox_inches='tight')
+#plt.savefig(f'plot_tesi/PLANCK_VALIDATION_diff_betaj_mean_theory_over_sigma_jmax_{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
+plt.show()
 ######################################################################################
 ############################## SIGNAL TO NOISE RATIO #################################
 def S_2_N(beta, cov_matrix):
@@ -295,5 +295,5 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel('Signal-to-Noise ratio')
 
 fig.tight_layout()
-plt.savefig(out_dir+f'SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
-plt.savefig(f'plot_tesi/PLANCK_VALIDATION_SNR_betaj_theory_jmax_{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')
+#plt.savefig(out_dir+f'SNR_betaj_theory_T_gal_jmax{jmax}_D{myanalysis.B:0.2f}_nsim{nsim}_nside{nside}_mask.png', bbox_inches='tight')
+#plt.savefig(f'plot_tesi/PLANCK_VALIDATION_SNR_betaj_theory_jmax_{jmax}_B{B:1.2f}_nsim{nsim}_nside{nside}.pdf')

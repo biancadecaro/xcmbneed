@@ -27,7 +27,7 @@ AR        = ar rv
 PYTHON = python
 
 # your optimization flag
-DEBUGFLAG=#-fbounds-check
+DEBUGFLAG=-v#-fbounds-check
 OPTFLAG = -O3 -ffast-math -march=native
 #OPTFLAG = -Ofast -ffast-math #-march=native
 #OPTFLAG = -fast
@@ -39,7 +39,8 @@ OMPFLAG   = -fopenmp
 
 # all other compilation flags
 CCFLAG = -g -fPIC -std=c99 -DHAVE_INLINE $(DEBUGFLAG)
-LDFLAG = -g -fPIC -std=c99 -L$(HOME)/fftw3/fftw-3.3.10-double/lib -lfftw3_threads -lfftw3_omp -lfftw3 -L$(HOME)/gsl/gsl-2.7.1/lib -lgslcblas -lgsl
+LDFLAG = -g -fPIC -std=c99 -L/usr/local/lib -lfftw3_threads -lfftw3_omp -lfftw3 -L/usr/local/lib -lgsl -lgslcblas#-L$(HOME)/fftw3/fftw-3.3.10-double/lib -lfftw3_threads -lfftw3_omp -lfftw3 -L$(HOME)/gsl/gsl-2.7.1/lib -lgsl -lgslcblas
+
 ########################################################
 ###### IN PRINCIPLE THE REST SHOULD BE LEFT UNCHANGED ##
 ########################################################
@@ -48,7 +49,7 @@ LDFLAG = -g -fPIC -std=c99 -L$(HOME)/fftw3/fftw-3.3.10-double/lib -lfftw3_thread
 #CCFLAG += -D__CLASSDIR__='"$(MDIR)"'
 
 # where to find include files *.h
-INCLUDES = -I../include -I$(HOME)/fftw3/fftw-3.3.10-double/include -I$(HOME)/gsl/gsl-2.7.1/include
+INCLUDES = -I../include -I/usr/local/include#-I../include -I$(HOME)/fftw3/fftw-3.3.10-double/include -I$(HOME)/gsl/gsl-2.7.1/include
 
 # automatically add external programs if needed. First, initialize to blank.
 EXTERNAL =
@@ -57,7 +58,6 @@ PYTHONFLAGS=--user
 
 %.o:  %.c .base
 	cd $(WRKDIR);$(CC) $(OPTFLAG) $(OMPFLAG) $(CCFLAG) $(INCLUDES) -c ../$< -o $*.o
-
 SOURCES = fft_unit.o needlets_unit.o
 
 MAIN = test_needlets_unit.o
@@ -68,14 +68,14 @@ libmylibc.a: $(SOURCES) $(EXTERNAL)
 	$(AR)  $@ $(addprefix build/, $(SOURCES) $(EXTERNAL))
 
 testlib: $(SOURCES) $(EXTERNAL) $(MAIN)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o testlib $(addprefix build/,$(notdir $^)) -lm
+	$(CC) $(OPTFLAG) $(OMPFLAG) -o testlib $(addprefix build/,$(notdir $^)) $(LDFLAG) -lm
 
 #test_sigma: $(TOOLS) $(SOURCES) $(EXTERNAL) $(OUTPUT) $(TEST_SIGMA)
 #	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o test_sigma $(addprefix build/,$(notdir $^)) -lm
 
 cythonwrap: libmylibc.a python/cython_mylibc.pyx python/c_cython_mylibc.pxd
-	cd python; export CC=$(CC); $(PYTHON) setup.py install $(PYTHONFLAGS)
-
+	cd python; $(PYTHON) setup.py install $(PYTHONFLAGS)
+#export CC=$(CC);
 clean: .base
 	rm -rf $(WRKDIR);
 	rm -f libmylibc.a
