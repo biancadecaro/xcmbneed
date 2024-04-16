@@ -27,19 +27,8 @@ src/sims/Needlet/Pietrobon*
 
 src/noise/COM_CompMap_CMB-commrul_2048_R1.00.fits
 src/mask/COM_Mask_CMB-common-Mask-Int_2048_R3.00.fits
-<<<<<<< HEAD
 src/mask/HFI_Mask_GalPlane-apo0_2048_R2.00.fits
 
-/src/comparison_theoretical_simulated_spectra/EUCLID
-/src/cls_from_maps/EUCLID
 
-/src/output_needlet_TG/EUCLID
-/src/output_Cl_TG/EUCLID
-
-src/TG_needlet_EUCLID_*
-src/TG_cl_EUCLID.py
-src/TG_EUCLID_needmaster.py
-src/from_Marina_sims_2_ours.py
-=======
-src/mask/HFI_Mask_GalPlane-apo0_2048_R2.00.fits
->>>>>>> euclid_implementation
+/src/mylibc/mylib/c/Makefile
+/src/mylibc/mylib/c/python/setup.py

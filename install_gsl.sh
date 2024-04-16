@@ -1,6 +1,5 @@
 #!/bin/bash
 
-cd /tmp
 wget https://mirror.kumi.systems/gnu/gsl/gsl-2.7.1.tar.gz
 tar -zxf gsl-2.7.1.tar.gz
 cd gsl-2.7.1

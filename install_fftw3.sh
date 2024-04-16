@@ -1,6 +1,5 @@
 #!/bin/bash
 
-cd /tmp
 wget http://fftw.org/fftw-3.3.10.tar.gz
 tar -zxf fftw-3.3.10.tar.gz
 cd fftw-3.3.10
