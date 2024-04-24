@@ -388,12 +388,17 @@ class NeedAnalysis(object):
                         fsky  = np.mean(mask) 
                         #map1 *= mask 
                         bad_v = np.where(mask==0)
-                        nside = hp.get_nside(map1)
-                        #print(bad_v[0].shape[0], hp.nside2npix(nside)-np.sum(mask))
-                        print(f'fsky mappa 1={fsky:0.2f}')
+                        #nside = hp.get_nside(map1)
+                        ##print(bad_v[0].shape[0], hp.nside2npix(nside)-np.sum(mask))
+                        #print(f'fsky mappa 1={fsky:0.2f}')
+                        #map1[bad_v]=hp.UNSEEN
+                        ##map1 = hp.remove_dipole(map1, verbose=False) #BIANCA 8/9/2023
+                        good_v = np.where(mask!=0)
                         map1[bad_v]=hp.UNSEEN
-                        #map1 = hp.remove_dipole(map1, verbose=False) #BIANCA 8/9/2023
-                        #map1[bad_v]=0.0
+                        monopole1 = np.mean(map1[good_v])
+                        map1=map1-monopole1
+                        print(monopole1)
+
                 else:
                         map1 = hp.remove_dipole(map1, verbose=False)#.compressed() # BIANCA ho aggiunto else
                 
@@ -409,9 +414,14 @@ class NeedAnalysis(object):
                                #map2 *= mask 
                                print(f'fsky mappa 2={np.mean(mask) :0.2f}')
                                bad_v_2 = np.where(mask==0)  #BIANCA aggiunto da 409 a 413 
-                               map2[bad_v_2]=hp.UNSEEN
+                               #map2[bad_v_2]=hp.UNSEEN
                                #map2 = hp.remove_dipole(map2, verbose=False) #BIANCA 8/9/2023
                                #map2[bad_v_2]=0.0
+                               good_v_2 = np.where(mask!=0)
+                               map2[bad_v_2]=hp.UNSEEN
+                               monopole2 = np.mean(map2[good_v_2])
+                               map2=map2-monopole2
+                               print(monopole2)
                         else:
                                 map2 = hp.remove_dipole(map2, verbose=False)#.compressed()
                         if inpainting:
