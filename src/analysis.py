@@ -274,7 +274,7 @@ class NeedAnalysis(object):
         Class to perform needlet analysis (based on Alessandro Renzi's library). 
         @see arXiv:0707.0844    
         """     
-        def __init__(self, jmax, lmax, OutDir, Sims, mask=None, flattening=None, 
+        def __init__(self, jmax, lmax, OutDir, Sims, mask=None, mergej=None, flattening=None, 
                                  pixwin=False, fwhm_smooth=None, fsky_approx=False):
         #def __init__(self, jmax, lmin, lmax, OutDir, Sims, mask=None, flattening=None, 
         
@@ -301,6 +301,7 @@ class NeedAnalysis(object):
                 self.lmax   = lmax
                 self.Sims   = Sims    
                 self.OutDir = OutDir  
+                self.mergej = mergej
                 #self.fsky_approx = fsky_approx
                 #print(f'fsky_approx = {fsky_approx}')
 
@@ -310,13 +311,20 @@ class NeedAnalysis(object):
                 # Initialize Needlet library
                 print("...Initializing Needlet library...")
                 self.B = pippo.mylibpy_jmax_lmax2B(self.jmax, self.lmax)
-		#self.B = mylibc.jmax_lmax2B(self.jmax, self.lmax)
+
                 print("==>lmax={:d}, jmax={:d}, nside={:d}, B={:e}".format(self.lmax,self.jmax,self.Sims.SimPars['nside'],self.B)) 
                 self.b_values = pippo.mylibpy_needlets_std_init_b_values(self.B, self.jmax, self.lmax)
-                #print(self.b_values, self.b_values.shape)
-                np.savetxt('b_need/alessandro_b_values_B=%1.2f' %self.B+'.txt',self.b_values)
-                pippo.mylibpy_needlets_check_windows(self.jmax, self.lmax, self.b_values)
-                self.jvec = np.arange(self.jmax+1)
+                if mergej:
+                        self.b_values = pippo.mylibpy_needlets_std_init_b_values_mergej(self.B, self.jmax, self.lmax, self.mergej)
+                        #np.savetxt('b_need/merge_b_values_B=%1.2f' %self.B+'.txt',self.b_values)
+                #pippo.mylibpy_needlets_check_windows(self.jmax, self.lmax, self.b_values)
+                for ell in range(self.b_values.shape[1]):
+                        s = 0
+                        for jj in range(self.b_values.shape[0]):
+                                s += self.b_values[jj][ell]**2
+                        if s-1 > np.finfo(float).eps*100:
+                                print('WRONG WINDOW FUNCTIONS')
+                self.jvec = np.arange(self.b_values.shape[0])
                 print("...done...")
 
         def Betajk2Betaj(self, betajk1, betajk2=None, mask=None):
@@ -404,8 +412,11 @@ class NeedAnalysis(object):
                 
                 if inpainting:
                         map1 = inp.diffusive_inpaint2(map1, mask, niter)
+                if self.mergej:
+                        betajk1 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic_mergej(map1, self.B, self.jmax, self.lmax, self.mergej)
+                else:
+                        betajk1 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map1, self.B, self.jmax, self.lmax)
 
-                betajk1 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map1, self.B, self.jmax, self.lmax)
                 #print('shape betajk1='+str(betajk1.shape))
                 if map2 is None: # Auto-
                        return self.Betajk2Betaj(betajk1, mask=mask)/fsky - noise
@@ -427,8 +438,10 @@ class NeedAnalysis(object):
                         if inpainting:
                                map2 = inp.diffusive_inpaint2(map2, mask, niter)
                                print('sono dentro inpainting')
-                        betajk2 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map2, self.B, self.jmax, self.lmax)
-                        
+                        if self.mergej:
+                                betajk2 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic_mergej(map2, self.B, self.jmax, self.lmax, self.mergej)
+                        else:
+                                betajk2 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map2, self.B, self.jmax, self.lmax)
                         #for j in range(self.jmax):
                         #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'T', betajk1[j,:], overwrite= True)     
                         #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'G', betajk2[j,:], overwrite= True)     
@@ -573,7 +586,7 @@ class NeedAnalysis(object):
                         
                         print(dim)
 
-                        betaj_sims = np.zeros((int(dim), self.jmax+1)) 
+                        betaj_sims = np.zeros((int(dim), self.b_values.shape[0])) 
 
                         # Cycle over simulations 
                         k = 0

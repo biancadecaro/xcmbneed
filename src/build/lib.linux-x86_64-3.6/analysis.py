@@ -274,7 +274,7 @@ class NeedAnalysis(object):
         Class to perform needlet analysis (based on Alessandro Renzi's library). 
         @see arXiv:0707.0844    
         """     
-        def __init__(self, jmax, lmax, OutDir, Sims, mask=None, flattening=None, 
+        def __init__(self, jmax, lmax, OutDir, Sims, mask=None, mergej=None, flattening=None, 
                                  pixwin=False, fwhm_smooth=None, fsky_approx=False):
         #def __init__(self, jmax, lmin, lmax, OutDir, Sims, mask=None, flattening=None, 
         
@@ -301,6 +301,7 @@ class NeedAnalysis(object):
                 self.lmax   = lmax
                 self.Sims   = Sims    
                 self.OutDir = OutDir  
+                self.mergej = mergej
                 #self.fsky_approx = fsky_approx
                 #print(f'fsky_approx = {fsky_approx}')
 
@@ -310,11 +311,12 @@ class NeedAnalysis(object):
                 # Initialize Needlet library
                 print("...Initializing Needlet library...")
                 self.B = pippo.mylibpy_jmax_lmax2B(self.jmax, self.lmax)
-		#self.B = mylibc.jmax_lmax2B(self.jmax, self.lmax)
+
                 print("==>lmax={:d}, jmax={:d}, nside={:d}, B={:e}".format(self.lmax,self.jmax,self.Sims.SimPars['nside'],self.B)) 
                 self.b_values = pippo.mylibpy_needlets_std_init_b_values(self.B, self.jmax, self.lmax)
-                #print(self.b_values, self.b_values.shape)
-                np.savetxt('b_need/alessandro_b_values_B=%1.2f' %self.B+'.txt',self.b_values)
+                if mergej:
+                        self.b_values = pippo.mylibpy_needlets_std_init_b_values_mergej(self.B, self.jmax, self.lmax, self.mergej)
+                        np.savetxt('b_need/merge_b_values_B=%1.2f' %self.B+'.txt',self.b_values)
                 pippo.mylibpy_needlets_check_windows(self.jmax, self.lmax, self.b_values)
                 self.jvec = np.arange(self.jmax+1)
                 print("...done...")
@@ -388,12 +390,17 @@ class NeedAnalysis(object):
                         fsky  = np.mean(mask) 
                         #map1 *= mask 
                         bad_v = np.where(mask==0)
-                        nside = hp.get_nside(map1)
-                        #print(bad_v[0].shape[0], hp.nside2npix(nside)-np.sum(mask))
-                        print(f'fsky mappa 1={fsky:0.2f}')
+                        #nside = hp.get_nside(map1)
+                        ##print(bad_v[0].shape[0], hp.nside2npix(nside)-np.sum(mask))
+                        #print(f'fsky mappa 1={fsky:0.2f}')
+                        #map1[bad_v]=hp.UNSEEN
+                        ##map1 = hp.remove_dipole(map1, verbose=False) #BIANCA 8/9/2023
+                        good_v = np.where(mask!=0)
                         map1[bad_v]=hp.UNSEEN
-                        #map1 = hp.remove_dipole(map1, verbose=False) #BIANCA 8/9/2023
-                        #map1[bad_v]=0.0
+                        monopole1 = np.mean(map1[good_v])
+                        map1=map1-monopole1
+                        print(monopole1)
+
                 else:
                         map1 = hp.remove_dipole(map1, verbose=False)#.compressed() # BIANCA ho aggiunto else
                 
@@ -409,9 +416,14 @@ class NeedAnalysis(object):
                                #map2 *= mask 
                                print(f'fsky mappa 2={np.mean(mask) :0.2f}')
                                bad_v_2 = np.where(mask==0)  #BIANCA aggiunto da 409 a 413 
-                               map2[bad_v_2]=hp.UNSEEN
+                               #map2[bad_v_2]=hp.UNSEEN
                                #map2 = hp.remove_dipole(map2, verbose=False) #BIANCA 8/9/2023
                                #map2[bad_v_2]=0.0
+                               good_v_2 = np.where(mask!=0)
+                               map2[bad_v_2]=hp.UNSEEN
+                               monopole2 = np.mean(map2[good_v_2])
+                               map2=map2-monopole2
+                               print(monopole2)
                         else:
                                 map2 = hp.remove_dipole(map2, verbose=False)#.compressed()
                         if inpainting:

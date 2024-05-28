@@ -57,7 +57,7 @@ nside = simparams['nside']
 
 lmax = 256
 nsim = 1000
-jmax=12
+jmax= 5
 
 # Paths
 fname_xcspectra = 'spectra/inifiles/EUCLID_fiducial_lmin0.dat'
@@ -96,7 +96,7 @@ if not os.path.exists(out_dir_plot):
 
 # Theory Needlet theory and windows functions
 need_theory = spectra.NeedletTheory(myanalysis.B)
-ell_binning=need_theory.ell_binning(jmax, lmax)
+
 
 filename_D = f'b_need/bneed_lmax256_jmax{jmax}_B{B:1.2f}.dat'
 b2_D = np.loadtxt(filename_D)
@@ -106,21 +106,22 @@ print(b2_D.shape)
 fig, ax1  = plt.subplots(1,1,figsize=(7,5)) 
 plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
 
-for i in range(1,b2_D.shape[0]):
+for i in range(b2_D.shape[0]):
     ax1.plot(b2_D[i], label = 'j='+str(i) )
+    print(b2_D[i])
 ax1.set_xscale('log')
+#ax1.set_xlim(-1,10)
 ax1.set_xlabel(r'$\ell$')
 ax1.set_ylabel(r'$w^{2}(\frac{\ell}{D^{j}})$')
 ax1.legend(loc='right')
 plt.tight_layout()
 plt.savefig(out_dir_plot+f'b2_D{B:1.2f}.png')
-plt.show()
 
-
+ell_binning=need_theory.ell_binning(jmax, lmax)
 fig = plt.figure()
 plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
 ax = fig.add_subplot(1, 1, 1)
-for i in range(1,jmax+1):
+for i in range(0,jmax+1):
     ell_range = ell_binning[i][ell_binning[i]!=0]
     plt.plot(ell_range, i*ell_range/ell_range, label= f'j={i}')
     plt.text(ell_range[0], i, r'$\ell_{min}=%d,\,\ell_{max}=%d$'%(ell_range[0],ell_range[-1]))
@@ -214,8 +215,8 @@ ax = fig.add_subplot(1, 1, 1)
 
 ax.axhline(ls='--', color='grey')
 
-ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(delta_gammaj)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),  fmt='o', ms=0, label=r'Variance of the mean from theory')
-ax.errorbar(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] /gammaJ_tg[1:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[1:jmax+1]),color='#2b7bbc',  ms=3,fmt='o',  label=r'Variance of the mean from simulations')
+ax.errorbar(myanalysis.jvec[0:jmax+1], (betaj_TS_galT_mask_mean[0:jmax+1] /gammaJ_tg[0:jmax+1]-1), yerr=np.sqrt(np.diag(delta_gammaj)[0:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[0:jmax+1]),  fmt='o', ms=0, label=r'Variance of the mean from theory')
+ax.errorbar(myanalysis.jvec[0:jmax+1], (betaj_TS_galT_mask_mean[0:jmax+1] /gammaJ_tg[0:jmax+1]-1), yerr=np.sqrt(np.diag(cov_TS_galT_mask)[0:jmax+1])/(np.sqrt(nsim)*gammaJ_tg[0:jmax+1]),color='#2b7bbc',  ms=3,fmt='o',  label=r'Variance of the mean from simulations')
 
 ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -238,9 +239,9 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 
-ax.plot(myanalysis.jvec[1:jmax+1], gammaJ_tg[1:jmax+1], label='Theory')
-ax.errorbar(myanalysis.jvec[1:jmax+1], betaj_TS_galT_mask_mean[1:jmax+1], yerr=np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax+1])/np.sqrt(nsim) ,color='#2b7bbc',fmt='o',ms=3, label='Error of the mean of the simulations')
-ax.errorbar(myanalysis.jvec[1:jmax+1], betaj_TS_galT_mask_mean[1:jmax+1], yerr=np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax+1]) ,color='grey',fmt='o',ms=0, label='Error of simulations')
+ax.plot(myanalysis.jvec[0:jmax+1], gammaJ_tg[0:jmax+1], label='Theory')
+ax.errorbar(myanalysis.jvec[0:jmax+1], betaj_TS_galT_mask_mean[0:jmax+1], yerr=np.sqrt(np.diag(cov_TS_galT_mask)[0:jmax+1])/np.sqrt(nsim) ,color='#2b7bbc',fmt='o',ms=3, label='Error of the mean of the simulations')
+ax.errorbar(myanalysis.jvec[0:jmax+1], betaj_TS_galT_mask_mean[0:jmax+1], yerr=np.sqrt(np.diag(cov_TS_galT_mask)[0:jmax+1]) ,color='grey',fmt='o',ms=0, label='Error of simulations')
 
 ax.legend(loc='best')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -266,13 +267,13 @@ plt.suptitle(r'EuclidxPlanck MASK NEEDLETS $D = %1.2f $' %myanalysis.B +r'$ ,~j_
 
 ax = fig.add_subplot(1, 1, 1)
 
-ax.plot(myanalysis.jvec[1:], (np.diag(cov_TS_galT_mask)[1:]-np.diag(delta_gammaj)[1:])/np.diag(delta_gammaj)[1:]*100 ,'o',color='#2b7bbc')#, label='MASK')
+ax.plot(myanalysis.jvec[0:jmax+1], (np.diag(cov_TS_galT_mask)[0:jmax+1]-np.diag(delta_gammaj)[0:jmax+1])/np.diag(delta_gammaj)[0:jmax+1]*100 ,'o',color='#2b7bbc')#, label='MASK')
 ax.axhline(ls='--', color='grey')
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter)
-ax.set_xticks(myanalysis.jvec[1:]) 
-ax.set_xticklabels(myanalysis.jvec[1:])
+ax.set_xticks(myanalysis.jvec[0:jmax+1]) 
+ax.set_xticklabels(myanalysis.jvec[0:jmax+1])
 ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'% $(\Delta \Gamma)^2_{\mathrm{sims}}/(\Delta \Gamma)^2_{\mathrm{analytic}}$ - 1')
 
@@ -300,7 +301,8 @@ def cov_pseudo_cl(cltg,cltt, clgg, wl, lmax, noise_gal_l=None):
         for ll,ell2 in enumerate(ell):
             covll[l,ll] = Mll[l,ll]*(cltg[l]*cltg[ll]+np.sqrt(cltt[l]*cltt[ll]*clgg_tot[l]*clgg_tot[ll]))/(2.*ell1+1)
     return covll
-cls_tg = np.loadtxt('cls_from_maps/EUCLID/cls_Tgalnoise_anafast_nside128_lmax256_Euclidnoise_Marina_nsim1000_fsky0.36.dat')
+
+cls_tg = np.loadtxt('cls_from_maps/EUCLID/Euclid_combined_mask/cls_Tgalnoise_anafast_nside128_lmax256_Euclidnoise_Marina_nsim1000_fsky0.36.dat')
 
 cov_pcl_sim = np.cov(cls_tg.T)
 
@@ -333,13 +335,13 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 
-ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_TS_galT_mask)[1:])/np.sqrt(np.diag(delta_gammaj)[1:])-1)*100 ,'o',color='#2b7bbc')#, label='MASK')
+ax.plot(myanalysis.jvec[0:jmax+1], (np.sqrt(np.diag(cov_TS_galT_mask)[0:jmax+1])/np.sqrt(np.diag(delta_gammaj)[0:jmax+1])-1)*100 ,'o',color='#2b7bbc')#, label='MASK')
 ax.axhline(ls='--', color='grey')
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
-ax.set_xticks(myanalysis.jvec[1:])
-ax.set_xticklabels(myanalysis.jvec[1:])
+ax.set_xticks(myanalysis.jvec[0:jmax+1])
+ax.set_xticklabels(myanalysis.jvec[0:jmax+1])
 ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'% $\sigma_{\mathrm{sims}}/\sigma_{\mathrm{analytic}}$ - 1')
 
@@ -358,16 +360,110 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 ax = fig.add_subplot(1, 1, 1)
 
 ax.axhline(ls='--', color='grey')
-ax.plot(myanalysis.jvec[1:jmax+1], (betaj_TS_galT_mask_mean[1:jmax+1] -gammaJ_tg[1:jmax+1])/(np.sqrt(np.diag(delta_gammaj)[1:jmax+1])/np.sqrt(nsim)),'o', color='#2b7bbc')#, label=r'$T^S \times gal^S$, sim cov')
+ax.plot(myanalysis.jvec[0:jmax+1], (betaj_TS_galT_mask_mean[0:jmax+1] -gammaJ_tg[0:jmax+1])/(np.sqrt(np.diag(delta_gammaj)[0:jmax+1])/np.sqrt(nsim)),'o', color='#2b7bbc')#, label=r'$T^S \times gal^S$, sim cov')
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
-ax.set_xticks(myanalysis.jvec[1:jmax+1])
-ax.set_xticklabels(myanalysis.jvec[1:jmax+1])
+ax.set_xticks(myanalysis.jvec[0:jmax+1])
+ax.set_xticklabels(myanalysis.jvec[0:jmax+1])
 ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'$\Delta \Gamma_j^{\mathrm{TG}} / \sigma $')
 ax.set_ylim([-3,3])
 
 fig.tight_layout()
 plt.savefig(out_dir_plot+f'diff_gammaJ_over_sigma_D{B:1.2f}.png')
+plt.show()
+
+
+#################################
+####### SIGNAL TO NOISE ##########
+
+cls_tg_mean = np.mean(cls_tg, axis=0)
+cls_recovered = np.dot(np.linalg.inv(Mll[2:,2:]),cls_tg_mean[2:] ) 
+
+
+def S_2_N(beta, cov_matrix):
+    s_n = np.zeros(len(beta))
+    cov_inv = np.linalg.inv(cov_matrix)
+    temp = np.zeros(len(cov_matrix[0]))
+    for i in range(len(cov_matrix[0])):
+        for j in range(len(beta)):
+            #s_n[i] += np.dot(beta[i], np.dot(cov_inv[i, j], beta[j]))
+            temp[i] += cov_inv[i][j]*beta[j]
+        s_n[i] = beta[i].T*temp[i]
+    return s_n
+
+def S_2_N_th(beta, variance):
+    s_n = np.divide((beta)**2, variance)
+    return s_n
+
+def S_2_N_cum(s2n, jmax):
+    s2n_cum = np.zeros(jmax.shape[0])
+    for j,jj in enumerate(jmax):
+        for ijj in range(1,jj):
+            s2n_cum[j] +=s2n[ijj]
+        s2n_cum[j]= np.sqrt(s2n_cum[j])      
+    return s2n_cum
+
+def S_2_N_ell(cltg, cov):
+    icov= np.linalg.inv(cov)
+    nell  = cltg.shape[0]
+    s2n = np.zeros(nell)
+    for il in range(nell):
+        for iil in range(nell):
+            s2n[il] += np.dot(cltg[il], np.dot(icov[il, iil], cltg[iil]))
+    return s2n
+
+def S_2_N_cum_ell(s2n, lmax):
+    s2n_cum = np.zeros(lmax.shape[0])
+    for l,ell in enumerate(lmax):
+        for ill in range(2,ell-1):
+            s2n_cum[l] += s2n[ill]
+        s2n_cum[l]= np.sqrt(s2n_cum[l])      
+    return s2n_cum
+
+def fl_j(j_m):
+    ell_binning=need_theory.ell_binning(jmax, lmax)
+    l_j = np.zeros(j_m+1, dtype=int)
+    
+    for j in range(j_m+1):
+            ell_range = ell_binning[j][ell_binning[j]!=0]
+            #lmin = np.floor(myanalysis.B**(j-1))
+            #lmax = np.floor(myanalysis.B**(j+1))
+            #ell  = np.arange(lmin, lmax+1, dtype=int)
+            l_j[j] = int(ell_range[int(np.ceil((len(ell_range))/2))])#int(ell[int(np.ceil((len(ell))/2))])
+    return l_j
+
+lmax_vec=fl_j(jmax)
+lmax_vec_cl = np.arange(start=2,stop=256,dtype=int)
+
+s2n_theory_gamma=S_2_N(gammaJ_tg[0:jmax+1], delta_gammaj[0:jmax+1,0:jmax+1])
+s2n_mean_sim=S_2_N(betaj_TS_galT_mask_mean[0:jmax+1], delta_gammaj[0:jmax+1,0:jmax+1])
+s2n_cum = S_2_N_cum(s2n_mean_sim, myanalysis.jvec)
+s2n_mean_sim_cl=S_2_N_ell(cls_tg_mean[2:], cov_pcl[2:,2:])
+s2n_cum_cl = S_2_N_cum_ell(s2n_mean_sim_cl,lmax_vec_cl)
+
+print(f's2n_cum_lmax_need:{s2n_cum[-1]},2n_cum_lmax_pcl:{s2n_cum_cl[-1]}')
+
+fig = plt.figure(figsize=(10,11))
+
+plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+
+ax = fig.add_subplot(1, 1, 1)
+print(s2n_cum, lmax_vec)
+ax.plot(lmax_vec, s2n_cum, label='Needlets')
+ax.plot(lmax_vec_cl, s2n_cum_cl, color='#2b7bbc', label= 'PCL')
+ax.set_xscale('log')
+ax.set_xlim(left=3, right=250)
+ax.set_ylim(top=4.)
+
+plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.yaxis.set_major_formatter(formatter) 
+
+ax.set_xlabel(r'$\ell_{\mathrm{max}}$')
+ax.set_ylabel('Cumulative Signal-to-Noise ratio')
+ax.legend()
+
+fig.tight_layout()
+plt.savefig(out_dir_plot+f's2n_cum_B{B:1.2f}_jmax{jmax}_lmax{lmax}_nside{nside}.png')
 plt.show()

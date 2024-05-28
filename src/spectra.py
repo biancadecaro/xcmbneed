@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mll import mll
 import healpy as hp
+import cython_mylibc as pippo
 
 class XCSpectraFile(object):
     """ class to load and store Cls from the output files related to CMB lensing and galaxy field.
@@ -174,7 +175,7 @@ class NeedletTheory(object):
     """ class to compute theoretical quantities related to needlet, i.e. needlet power spectrum
         given an angular power spectrum Cl
     """
-    def __init__(self, B, npoints=1000):
+    def __init__(self, B, mergej=None, npoints=1000):
         """ 
         * B       = Needlet width parameter
         * npoints = # of points to sample the integrals
@@ -182,26 +183,35 @@ class NeedletTheory(object):
         self.B = B
         self.npoints = npoints
         self.norm = self.get_normalization()
+    
+    def get_bneed(self,jmax, lmax, mergej=None):
+        self.b_values = pippo.mylibpy_needlets_std_init_b_values(self.B, jmax, lmax)
+        if mergej:
+            self.b_values = pippo.mylibpy_needlets_std_init_b_values_mergej(self.B, jmax, lmax, mergej)
+        return self.b_values
+    
+    def get_jvec(self):
+        self.jvec = np.arange(self.b_values.shape[0])
+        return self.jvec
 
     def ell_binning(self, jmax, lmax):#, ell):
         """
         Returns the binning scheme in  multipole space
         """
         #assert(np.floor(self.B**(jmax+1)) <= ell.size-1) 
-        ell  = np.arange(lmax+1)*np.ones((jmax+1, lmax+1))
-        bjl  = np.zeros((jmax+1,lmax+1))
-        ellj =np.zeros((jmax+1, lmax+1))
-        #delta_gammaj = np.zeros((jmax+1, jmax+1))
-        for j in range(jmax+1):
-            b2 = self.b_need(ell[j]/self.B**j)**2
-            b2[np.isnan(b2)] = 0.
-            b2[b2!=0] = 1.
-            bjl[j,:] = b2
+        
+        bjl  = self.b_values**2#np.zeros((jmax+1,lmax+1))
+        ell  = np.arange(lmax+1)*np.ones((bjl.shape[0], lmax+1))
+        ellj =np.zeros((bjl.shape[0], lmax+1))
+
+        for j in range(bjl.shape[0]):
+            #b2 = self.b_need(ell[j]/self.B**j)**2
+            #b2[np.isnan(b2)] = 0.
+            bjl[j,:][bjl[j,:]!=0] = 1.
+            #bjl[j,:] = b2
             ellj[j,:] = ell[j,:]*bjl[j,:]
         return ellj 
 
-
-    
     def get_B_parameter(self):
         """
         Returns the D parameter for needlets
@@ -287,26 +297,6 @@ class NeedletTheory(object):
             betaj[j] = np.sum(b2*(2.*ell+1.)/4./np.pi*cl[ell])
         
         return betaj
-    
-    #def cl_binned(self, jmax, cl):
-    #	"""
-    #	Returns Cl power spectra binned with needlet binning
-    #	"""
-    #	
-    #	#print(cl.size)
-    #	#print(np.floor(self.B**(jmax+1)))
-#
-    #	assert(np.floor(self.B**(jmax+1)) <= cl.size-1) 
-    #	#print( np.floor(self.B**(jmax+1)), cl.size-1)
- #
-    #	clj = np.zeros(jmax+1)
-    #	for j in range(jmax+1):
-    #		lmin = np.floor(self.B**(j-1))
-    #		lmax = np.floor(self.B**(j+1))
-    #		ell  = np.arange(lmin, lmax+1, dtype=np.int)
-    #		#print(lmin, lmax, j)
-    #		clj[j] = np.sum(cl[ell])
-    #	return clj
 
     def get_Mll(self, wl, lmax=None):
         """
@@ -375,12 +365,12 @@ class NeedletTheory(object):
         """
         Mll  = self.get_Mll(wl, lmax=lmax)
         ell  = np.arange(0, lmax+1, dtype=np.int)
-        bjl  = np.zeros((jmax+1,lmax+1))
+        bjl  = self.b_values**2#np.zeros((jmax+1,lmax+1))
         #filename = f'b_need/bneed_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat'
-        for j in range(jmax+1):
-            b2 = self.b_need(ell/self.B**j)**2
-            b2[np.isnan(b2)] = 0.
-            bjl[j,:] = b2
+        #for j in range(jmax+1):
+        #    b2 = self.b_need(ell/self.B**j)**2
+        #    b2[np.isnan(b2)] = 0.
+        #    bjl[j,:] = b2
         #np.savetxt(filename, bjl) 
         return (bjl*(2*ell+1.)*np.dot(Mll, cl[:lmax+1])).sum(axis=1)/(4*np.pi)#np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
     
@@ -457,12 +447,12 @@ class NeedletTheory(object):
 
         Mll  = self.get_Mll(wl, lmax=lmax)
         ell  = np.arange(lmax+1, dtype=int)
-        bjl  = np.zeros((jmax+1,lmax+1))
+        bjl  = self.b_values**2*(2*ell+1.) #np.zeros((jmax+1,lmax+1))
         #delta_gammaj = np.zeros((jmax+1, jmax+1))
-        for j in range(jmax+1):
-            b2 = self.b_need(ell/self.B**j)**2
-            b2[np.isnan(b2)] = 0.
-            bjl[j,:] = b2*(2*ell+1.) 
+        #for j in range(jmax+1):
+        #    b2 = self.b_need(ell/self.B**j)**2
+        #    b2[np.isnan(b2)] = 0.
+        #    bjl[j,:] = b2*(2*ell+1.) 
         covll = np.zeros((lmax+1, lmax+1))
         for ell1 in range(lmax+1):
             for ell2 in range(lmax+1):

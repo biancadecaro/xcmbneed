@@ -210,6 +210,50 @@ def mylibpy_needlets_std_init_b_values(pyB,pyjmax,pylmax):
 
     return np.asarray(py_b_values)
 
+def mylibpy_needlets_std_init_b_values_mergej(pyB,pyjmax,pylmax,mergej):
+    """
+    mylibpy_needlets_check_windows(jmax,lmax,b_values)
+    
+    This function check if the 1D needlets window functions are correct. [It checks if \sum_j b(l/B**j)**2=1 for l>0]
+
+    Parameters
+    ----------
+    B: double
+        Needlets width parameter
+    jmax: int
+        Max frequency (j=0,...,jmax)
+    lmax: int
+        Max harmonic parameter
+    mergej:
+        list of j bins to merge
+    Returns
+    ----------
+    b_values: [0:jmax,0:lmax]
+        Needlets window functions
+    """
+
+    b_values=mylibpy_needlets_std_init_b_values(pyB,pyjmax,pylmax)
+    b_values_new = np.copy(b_values)
+
+    jvec = np.arange(pyjmax+1)
+    jmin_merge = mergej[0]
+    jmax_merge = mergej[-1]
+    jvec_new = np.arange(len(jvec) -len(mergej)+1)
+    temp = np.zeros(pylmax+1)
+    for l in range(b_values.shape[1]):
+        for j in mergej:
+            temp[l] += b_values[j][l]**2
+        temp[l] = np.sqrt(temp[l])
+    b_values_new[jmin_merge] =  temp
+   
+    idx_left=np.where(jvec<=jmin_merge)
+    idx_right=np.where(jvec>jmax_merge)
+    b_values_left = b_values_new[idx_left] 
+    b_values_right = b_values_new[idx_right] 
+    b_values_new_2 = np.concatenate([b_values_left, b_values_right], axis=0)
+    print(b_values[jmin_merge], b_values[jmax_merge], b_values_new_2[1])
+    return b_values_new_2
+
 def j_B2nside(j,B):
     """
     Given the needlet frequency j and the B value return the minimum nside
@@ -325,6 +369,44 @@ def mylibpy_needlets_f2betajk_healpix_harmonic(object[cDOUBLE, ndim=1] Map,pyB,p
     #print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,pyjmax,nside,pyB)) 
     py_betajk=np.empty((pyjmax+1,Npix))
     for j in np.arange(pyjmax+1):
+        py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False
+    return py_betajk
+
+
+def mylibpy_needlets_f2betajk_healpix_harmonic_mergej(object[cDOUBLE, ndim=1] Map,pyB,pyjmax,pylmax, mergej):
+    """
+    mylibpy_needlets_f2betajk_healpix_harmonic_mergej(Map,B,jmax,lmax, mergej)
+    
+    Standard needlets transform for harmonic functions. Healpy is required.
+
+    This function return the coefficients of the standard needlets transform of a Healpix map.
+
+    Parameters
+    ----------
+    Map: [0:Npix-1]
+        Healpix Map
+    B: double
+        Needlets width parameter
+    jmax: int
+        Max frequency (j=0,...,jmax)
+    lmax: int
+        maximum harmonic
+    mergej:
+        j to merge
+
+    Returns
+    ----------
+    betajk: [0:jmax,0:Npix-1]
+        Needlets coefficients of the input signal
+    """
+    from healpy import almxfl,alm2map,map2alm,get_nside
+    nside=get_nside(Map)
+    Npix=12*nside**2
+    b_values=mylibpy_needlets_std_init_b_values_mergej(pyB,pyjmax,pylmax, mergej)
+    alm=map2alm(Map,lmax=pylmax)
+    #print("lmax={:d},jmax={:d},nside={:d},B={:e}".format(pylmax,pyjmax,nside,pyB)) 
+    py_betajk=np.empty((b_values.shape[0],Npix))
+    for j in np.arange(b_values.shape[0]):
         py_betajk[j,:]=alm2map(almxfl(alm,b_values[j,:]),lmax=pylmax,nside=nside, verbose = False) #BIANCA verbose = False
     return py_betajk
 
