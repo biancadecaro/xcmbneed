@@ -33,33 +33,15 @@ class XCSpectraFile(object):
         
             self.lmax = lmax 
             self.lmin = lmin
-            #self.ell   = np.arange(lmin, lmax, dtype=np.float) #lmax+1
         
             print( 'lmin =', lmin)
             print( 'lmax =', lmax)
 
             self.ell = np.arange(self.lmin, self.lmax+1)
-            self.cltt = data[1]#np.zeros((lmin,(lmax+1))) #np.divide(data[1][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
-            self.cltg =  data[2]#np.zeros((lmin,(lmax+1))) #np.divide(data[2][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
-            self.clg1g1 = data[3]#np.zeros((lmin,(lmax+1))) #np.divide(data[3][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))
-            
-            #self.cltt = data[1][lmin:]#np.divide(data[1][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[1][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
-            #self.cltg =  data[2][lmin:]#np.divide(data[2][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[2][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
-            #self.clg1g1 = data[3][lmin:]#np.divide(data[3][lmin:(lmax+1)],(self.ell*(self.ell+1)/(2*np.pi)))#np.divide(data[3][lmin:(lmax+1)],(ell*(ell+1)))#np.zeros((lmin,(lmax+1))) #
-            print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
+            self.cltt = data[1]
+            self.cltg =  data[2]
+            self.clg1g1 = data[3]
 
-
-            #print(self.cltg.shape, self.ell, self.ell.shape, lmin, lmax)
-            #self.cltg_tot = self.get_kg_tot(b=b, alpha=1)
-            #self.clgg_tot = self.get_gg_tot(b=b, alpha=1)
-            #for l in range(lmin, lmax-1):
-            #	print(l)
-            #	self.cltt[l] = self.cltt[l]/(l*(l+1))#[lmin:(lmax+1)]
-            #	self.cltg[l] = self.cltg[l]/(l*(l+1))#[lmin:(lmax+1)]
-            #	self.clg1g1[l] = self.clg1g1[l]/(l*(l+1))#[lmin:(lmax+1)]
-            #print(self.ell.shape, self.cltg.shape, self.cltt.shape, self.clg1g1.shape)
-            #header = 'ell, TT, TG, GG'
-            #np.savetxt('spectra/cl_spectra.dat', np.array([self.ell,self.cltt, self.cltg, self.clg1g1]), header = header )
         
         else:
             clarray = np.loadtxt(clfname)
@@ -130,38 +112,6 @@ class XCSpectraFile(object):
         if lmax is None: lmax = self.lmax
         s2n_ell = self.get_s2n_ell(spec, b=b, alpha=alpha, fsky=fsky, ngg=ngg, lmax=lmax)
         return np.array([np.sqrt(np.sum(s2n_ell[int(lmin):i+1]**2)) for i in range(int(lmin),int(lmax)+1)])
-
-    # def copy(self, lmax=None, lmin=None):
-    #     """ clone this object.
-    #          * (optional) lmax = restrict copy to L<=lmax.
-    #          * (optional) lmin = set spectra in copy to zero for L<lmin.
-    #     """
-    #     if (lmax == None):
-    #         return copy.deepcopy(self)
-    #     else:
-    #         assert( lmax <= self.lmax )
-    #         ret      = copy.deepcopy(self)
-    #         ret.lmax = lmax
-    #         ret.ls   = np.arange(0, lmax+1)
-    #         for k, v in self.__dict__.items():
-    #             if k[0:2] == 'cl':
-    #                 setattr( ret, k, copy.deepcopy(v[0:lmax+1]) )
-
-    #         if lmin != None:
-    #             assert( lmin <= lmax )
-    #             for k in self.__dict__.keys():
-    #                 if k[0:2] == 'cl':
-    #                     getattr( ret, k )[0:lmin] = 0.0
-    #         return ret
-
-    # def hashdict(self):
-    #     """ return a dictionary uniquely associated with the contents of this clfile. """
-    #     ret = {}
-    #     for attr in ['lmax', 'clkg', 'clkmu', 'clgg', 'clgmu', 'clmumu', 'clkk', 'nlkk']:
-    #         if hasattr(self, attr):
-    #             ret[attr] = getattr(self, attr)
-    #     return ret
-
 
     def plot(self, spec='clkg', p=plt.plot, t=lambda l:1., **kwargs):
         """ plot the spectrum
@@ -285,12 +235,6 @@ class NeedletTheory(object):
         betaj = np.zeros(jmax+1)
         bjl = np.zeros((jmax+1, lmax+1))
         for j in range(jmax+1):
-            #lmin = np.floor(self.B**(j-1))
-            #lmax = np.floor(self.B**(j+1))
-            #if lmax > cl.size-1:
-            #    lmax=cl.size-1
-            #ell  = np.arange(lmin, lmax+1, dtype=np.int)
-            #b2   = self.b_need(ell/self.B**j)*self.b_need(ell/self.B**j)
             b2 = self.b_need(ell/self.B**j)**2
             b2[np.isnan(b2)] = 0.
             bjl[j, :] = b2
@@ -355,7 +299,7 @@ class NeedletTheory(object):
             blj[:,j] = b2*(2*ell+1.) 
         return np.dot(Mll.T, blj)
 
-    def gammaJ(self, cl, wl, jmax, lmax):
+    def gammaJ(self, cl, Mll_1x2,lmax):
         """
         Returns the \Gamma_j vector from Domenico's notes
 
@@ -363,16 +307,10 @@ class NeedletTheory(object):
         -----
         gamma_lj.shape = (lmax+1, jmax+1)
         """
-        Mll  = self.get_Mll(wl, lmax=lmax)
+        #Mll1  = self.get_Mll(wl, lmax=lmax)
         ell  = np.arange(0, lmax+1, dtype=np.int)
-        bjl  = self.b_values**2#np.zeros((jmax+1,lmax+1))
-        #filename = f'b_need/bneed_lmax{lmax}_jmax{jmax}_B{self.B:0.2f}.dat'
-        #for j in range(jmax+1):
-        #    b2 = self.b_need(ell/self.B**j)**2
-        #    b2[np.isnan(b2)] = 0.
-        #    bjl[j,:] = b2
-        #np.savetxt(filename, bjl) 
-        return (bjl*(2*ell+1.)*np.dot(Mll, cl[:lmax+1])).sum(axis=1)/(4*np.pi)#np.dot(bjl, np.dot(Mll, cl[:lmax+1]))/(4*np.pi)
+        bjl  = self.b_values**2
+        return (bjl*(2*ell+1.)*np.dot(Mll_1x2, cl[:lmax+1])).sum(axis=1)/(4*np.pi)
     
     def sigmaJ(self, cl, wl, jmax, lmax):
         """
@@ -386,23 +324,6 @@ class NeedletTheory(object):
         ell     = np.arange(0, lmax+1, dtype=np.int)
         return np.sqrt(np.dot(gammalj.T, 2.*cl[:lmax+1]**2/(2*ell+1)))
 
-
-    #def delta_beta_j_cov(self, jmax, cltg, cltt, clgg, cov):
-    #	"""
-    #		Returns the \delta beta_j from https://arxiv.org/abs/astro-ph/0606475
-    #		eq 18
-    #	"""
-    #	delta_beta_j_squared = np.zeros(jmax+1)
-    #	cov_diag = np.zeros(jmax+1)
-    #	for j in range(jmax+1):
-    #		l_min = np.floor(self.B**(j-1))
-    #		l_max = np.floor(self.B**(j+1))
-    #		ell = np.arange(l_min, l_max+1, dtype=np.int)
-    #		#delta_beta_j_squared[j] = np.sum(((2*ell+1)/(16*np.pi**2))*(self.b_need(ell/self.B**j)**4)*(cltg[ell]**2 + cltt[ell]*clgg[ell]))
-    #		cov_diag[j] = cov[j][j]
-    #	#print(cov, cov_diag)
-    #	return np.sqrt(cov_diag)
-
     def delta_beta_j(self, jmax, lmax,cltg, cltt, clgg,  noise_gal_l=None):
             """
                 Returns the \delta beta_j from https://arxiv.org/abs/astro-ph/0606475
@@ -414,14 +335,6 @@ class NeedletTheory(object):
             else:
                 clgg_tot = clgg
     
-            #for j in range(jmax+1):
-            #    l_min = np.floor(self.D**(j-1))
-            #    l_max = np.floor(self.D**(j+1))
-            #    if l_max > cltg.size-1:
-            #        l_max=cltg.size-1
-            #    ell = np.arange(l_min,l_max+1, dtype=np.int)
-            #    delta_beta_j_squared[j] = np.sum(((2*ell+1)/(16*np.pi**2))*(self.b_need(ell/self.D**j)**4)*(cltg[ell]**2 + cltt[ell]*clgg_tot[ell]))
-#
             ell = np.arange(0,lmax+1)
             bjl = np.zeros((jmax+1, lmax+1))
             for j in range(jmax+1):
@@ -433,7 +346,7 @@ class NeedletTheory(object):
     
 
 
-    def variance_gammaj(self, cltg,cltt, clgg, wl, jmax, lmax, noise_gal_l=None):
+    def variance_gammaj(self, cltg,cltt, clgg, Mll, Mll_1x2, jmax, lmax, noise_gal_l=None):
         """
         Returns the Cov(\Gamma_j, \Gamma_j') 
         Notes
@@ -445,17 +358,13 @@ class NeedletTheory(object):
         else:
             clgg_tot = clgg
 
-        Mll  = self.get_Mll(wl, lmax=lmax)
+        #Mll  = self.get_Mll(wl, lmax=lmax)
         ell  = np.arange(lmax+1, dtype=int)
         bjl  = self.b_values**2*(2*ell+1.) #np.zeros((jmax+1,lmax+1))
-        #delta_gammaj = np.zeros((jmax+1, jmax+1))
-        #for j in range(jmax+1):
-        #    b2 = self.b_need(ell/self.B**j)**2
-        #    b2[np.isnan(b2)] = 0.
-        #    bjl[j,:] = b2*(2*ell+1.) 
+
         covll = np.zeros((lmax+1, lmax+1))
         for ell1 in range(lmax+1):
             for ell2 in range(lmax+1):
-                covll[ell1,ell2] = Mll[ell1,ell2]*(cltg[ell1]*cltg[ell2]+np.sqrt(cltt[ell1]*cltt[ell2]*clgg_tot[ell1]*clgg_tot[ell2]))/(2.*ell1+1)
+                covll[ell1,ell2] = (Mll_1x2[ell1,ell2]*(cltg[ell1]*cltg[ell2])+Mll[ell1,ell2]*(np.sqrt(cltt[ell1]*cltt[ell2]*clgg_tot[ell1]*clgg_tot[ell2])))/(2.*ell1+1)
         delta_gammaj = np.dot(bjl, np.dot(covll, bjl.T))
         return delta_gammaj/(4*np.pi)**2

@@ -101,37 +101,37 @@ ax.legend(loc='right', ncol=2)
 plt.tight_layout()
 plt.savefig(out_dir_plot+f'ell_binning_D{B:1.2f}.png')
 #plt.show()
-gammaJ_tg = need_theory.gammaJ(cl_theory_tg, wl, jmax, lmax)
-delta_gammaj = need_theory.variance_gammaj(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, wl=wl, jmax=jmax, lmax=lmax, noise_gal_l=Nll)
+gammaJ_tg = need_theory.gammaJ(cl_theory_tg, Mll, lmax)
+delta_gammaj = need_theory.variance_gammaj(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, Mll=Mll, Mll_1x2=Mll, jmax=jmax, lmax=lmax, noise_gal_l=Nll)
 
 
 # Computing simulated Gammaj 
 print("...computing Betajs for simulations...")
 fname_gammaj_sims_TS_galT_mask = f'betaj_sims_TS_galT_mergej_{len(mergej)}_jmax{jmax}_B_{myanalysis.B:0.2f}_nside{nside}_fsky{fsky:0.2f}.dat'
 
-gammaj_sims_TS_galT_mask  = myanalysis.GetBetajSimsFromMaps('T', nsim, field2='g1noise', mask=mask, fname=fname_gammaj_sims_TS_galT_mask, fsky_approx=False,EuclidSims=True)
+gammaj_sims_TS_galT_mask  = myanalysis.GetBetajSimsFromMaps('T', nsim, field2='g1noise', mask1=mask, fname=fname_gammaj_sims_TS_galT_mask, fsky_approx=False,EuclidSims=True)
 
 # Covariances
 print("...computing Cov Matrices...")
 fname_cov_TS_galT_mask       = f'cov_TS_galT_mergej_{len(mergej)}_jmax{jmax}_B_{myanalysis.B:0.2f}_nside{nside}_fsky{fsky:0.2f}.dat'
 
-cov_TS_galT_mask, corr_TS_galT_mask     = myanalysis.GetCovMatrixFromMaps(field1='T', nsim=nsim, field2='g1noise', mask=mask,fname=fname_cov_TS_galT_mask, fname_sims=fname_gammaj_sims_TS_galT_mask)
+cov_TS_galT_mask, corr_TS_galT_mask     = myanalysis.GetCovMatrixFromMaps(field1='T', nsim=nsim, field2='g1noise', mask1=mask,fname=fname_cov_TS_galT_mask, fname_sims=fname_gammaj_sims_TS_galT_mask)
 
 print("...done...")
 
 # <Gamma_j>_MC
-gammaj_TS_galT_mask_mean    = myanalysis.GetBetajMeanFromMaps('T', nsim, field2='g1noise', mask=mask, fname_sims=fname_gammaj_sims_TS_galT_mask)
+gammaj_TS_galT_mask_mean    = myanalysis.GetBetajMeanFromMaps('T', nsim, field2='g1noise', mask1=mask, fname_sims=fname_gammaj_sims_TS_galT_mask)
 
 # Covariances
 print("...computing Cov Matrices...")
 fname_cov_TS_galT_mask       = f'cov_TS_galT_jmax{jmax}_B_{myanalysis.B:0.2f}_nside{nside}_fsky{fsky:0.2f}.dat'
 
-cov_TS_galT_mask, corr_TS_galT_mask     = myanalysis.GetCovMatrixFromMaps(field1='T', nsim=nsim, field2='g1noise', mask=mask,fname=fname_cov_TS_galT_mask, fname_sims=fname_gammaj_sims_TS_galT_mask)
+cov_TS_galT_mask, corr_TS_galT_mask     = myanalysis.GetCovMatrixFromMaps(field1='T', nsim=nsim, field2='g1noise', mask1=mask,fname=fname_cov_TS_galT_mask, fname_sims=fname_gammaj_sims_TS_galT_mask)
 
 print("...done...")
 
 # <Gamma_j>_MC
-gammaj_TS_galT_mask_mean    = myanalysis.GetBetajMeanFromMaps('T', nsim, field2='g1noise', mask=mask, fname_sims=fname_gammaj_sims_TS_galT_mask)
+gammaj_TS_galT_mask_mean    = myanalysis.GetBetajMeanFromMaps('T', nsim, field2='g1noise', mask1=mask, fname_sims=fname_gammaj_sims_TS_galT_mask)
 
 ##########################################################################################
 # Some plots

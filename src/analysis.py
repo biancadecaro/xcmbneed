@@ -327,7 +327,7 @@ class NeedAnalysis(object):
                 self.jvec = np.arange(self.b_values.shape[0])
                 print("...done...")
 
-        def Betajk2Betaj(self, betajk1, betajk2=None, mask=None):
+        def Betajk2Betaj(self, betajk1, betajk2=None):
                 """
                 Returns the needlet (auto- or cross-) power spectrum \beta_j given the needlet coefficients.
 
@@ -352,7 +352,7 @@ class NeedAnalysis(object):
 
                 return betaj
 
-        def Map2Betaj(self, map1,nsim, map2=None, mask=None, noise=0., fsky_approx=False, inpainting=False, niter=2000, path_inpainting="python/inpainting.py"):
+        def Map2Betaj(self, map1,nsim, map2=None, mask1=None, mask2=None, noise=0., fsky_approx=False, inpainting=False, niter=2000, path_inpainting="python/inpainting.py"):
                 """
                 Returns the needlet (auto- or cross-) power spectrum \beta_j given Healpix maps.
 
@@ -362,7 +362,9 @@ class NeedAnalysis(object):
                         Map 1
                 map2 : Healpix map
                         Map 2 
-                mask : Healpix map
+                mask1 : Healpix map
+                        (binary) Mask applied to each map 
+                mask2 : Healpix map
                         (binary) Mask applied to each map 
                 noise : 
 
@@ -392,51 +394,38 @@ class NeedAnalysis(object):
 
                 fsky = 1.
                 
-                if mask is not None:
-                        fsky  = np.mean(mask) 
-                        #map1 *= mask 
-                        bad_v = np.where(mask==0)
-                        #nside = hp.get_nside(map1)
-                        ##print(bad_v[0].shape[0], hp.nside2npix(nside)-np.sum(mask))
-                        #print(f'fsky mappa 1={fsky:0.2f}')
-                        #map1[bad_v]=hp.UNSEEN
-                        ##map1 = hp.remove_dipole(map1, verbose=False) #BIANCA 8/9/2023
-                        good_v = np.where(mask!=0)
+                if mask1 is not None:
+                        fsky1  = np.mean(mask1) 
+                        bad_v = np.where(mask1==0)
+                        good_v = np.where(mask1!=0)
                         map1[bad_v]=hp.UNSEEN
-                        monopole1 = np.mean(map1[good_v])
-                        map1=map1-monopole1
-                        print(monopole1)
-
+                        #monopole1 = np.mean(map1[good_v])
+                        #map1=map1-monopole1
                 else:
                         map1 = hp.remove_dipole(map1, verbose=False)#.compressed() # BIANCA ho aggiunto else
                 
                 if inpainting:
-                        map1 = inp.diffusive_inpaint2(map1, mask, niter)
+                        map1 = inp.diffusive_inpaint2(map1, mask1, niter)
                 if self.mergej:
                         betajk1 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic_mergej(map1, self.B, self.jmax, self.lmax, self.mergej)
                 else:
                         betajk1 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic(map1, self.B, self.jmax, self.lmax)
 
-                #print('shape betajk1='+str(betajk1.shape))
                 if map2 is None: # Auto-
-                       return self.Betajk2Betaj(betajk1, mask=mask)/fsky - noise
+                       return self.Betajk2Betaj(betajk1)/fsky - noise
                 else: # Cross-
-                        if mask is not None:
+                        if mask2 is not None:
                                #map2 *= mask 
-                               print(f'fsky mappa 2={np.mean(mask) :0.2f}')
-                               bad_v_2 = np.where(mask==0)  #BIANCA aggiunto da 409 a 413 
-                               #map2[bad_v_2]=hp.UNSEEN
-                               #map2 = hp.remove_dipole(map2, verbose=False) #BIANCA 8/9/2023
-                               #map2[bad_v_2]=0.0
-                               good_v_2 = np.where(mask!=0)
+                               print(f'fsky mappa 2={np.mean(mask2) :0.2f}')
+                               bad_v_2 = np.where(mask2==0)  #BIANCA aggiunto da 409 a 413 
+                               good_v_2 = np.where(mask2!=0)
                                map2[bad_v_2]=hp.UNSEEN
-                               monopole2 = np.mean(map2[good_v_2])
-                               map2=map2-monopole2
-                               print(monopole2)
+                               #monopole2 = np.mean(map2[good_v_2])
+                               #map2=map2-monopole2
                         else:
                                 map2 = hp.remove_dipole(map2, verbose=False)#.compressed()
                         if inpainting:
-                               map2 = inp.diffusive_inpaint2(map2, mask, niter)
+                               map2 = inp.diffusive_inpaint2(map2, mask2, niter)
                                print('sono dentro inpainting')
                         if self.mergej:
                                 betajk2 = pippo.mylibpy_needlets_f2betajk_healpix_harmonic_mergej(map2, self.B, self.jmax, self.lmax, self.mergej)
@@ -447,9 +436,9 @@ class NeedAnalysis(object):
                         #        hp.write_map(f'maps_beta/map_beta_{j}_B = %1.2f ' %self.B+f'_nsim_{nsim}_fsky={fsky}'+'G', betajk2[j,:], overwrite= True)     
                         if fsky_approx:
                                 print('fsky approximation=True')
-                                return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)/fsky 
+                                return self.Betajk2Betaj(betajk1, betajk2=betajk2)/fsky 
                         else:
-                                return self.Betajk2Betaj(betajk1, betajk2=betajk2, mask=mask)
+                                return self.Betajk2Betaj(betajk1, betajk2=betajk2)
 
         def GetBetajkSims(self, field, nsim, mask=None, fname=None, EuclidSims=False):
                 """
@@ -529,7 +518,7 @@ class NeedAnalysis(object):
 
                 return betajk_sims_tot
         
-        def GetBetajSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, noise=0., EuclidSims=False,fsky_approx=False, inpainting=False, niter=1000, path_inpainting="/u/ap/fbianchini/codes/inpainting/python/inpainting.py"):
+        def GetBetajSimsFromMaps(self, field1, nsim, field2=None, fix_field=None, mask1=None, mask2=None, fname=None, noise=0., EuclidSims=False,fsky_approx=False, inpainting=False, niter=1000, path_inpainting="/u/ap/fbianchini/codes/inpainting/python/inpainting.py"):
                 """
                 Evaluates needlet (auto- or cross-) power spectrum for simulated maps of a given field. 
 
@@ -543,8 +532,10 @@ class NeedAnalysis(object):
                         Second cosmic field to be analyzed => 'kappaT, kappaN, kappaS, deltaT, deltaS'
                 fix_field : str or Healpix map
                         Map to cross-correlate with nsim simulated maps of field1. This is for *null-tests*.
-                mask  : Healpix map
-                        (binary) Mask applied to each map
+                mask1  : Healpix map
+                        (binary) Mask applied to second map
+                mask2  : Healpix map
+                        (binary) Mask applied to second map
                 fname : str
                         File name to store the array. 
 
@@ -553,7 +544,6 @@ class NeedAnalysis(object):
                 betaj_sims : array
                         array with ((nsim, jmax+1)) shape containing needlet coefficients 
                 """
-                #print('sono dentro GetBetajSimsFromMaps')
                 try:
                         from mpi4py import MPI
                         comm = MPI.COMM_WORLD
@@ -597,7 +587,7 @@ class NeedAnalysis(object):
                                                 m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
                                         else:
                                                 m1    = self.Sims.GetSimField(field1, n)
-                                        betaj = self.Map2Betaj(m1, k, mask=mask, noise=noise,fsky_approx=fsky_approx, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
+                                        betaj = self.Map2Betaj(m1, k, mask1=mask1, noise=noise,fsky_approx=fsky_approx, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         elif (field2 is not None) and (fix_field is None): # Field1 x Field2
@@ -611,7 +601,7 @@ class NeedAnalysis(object):
                                                 m1    = self.Sims.GetSimField(field1, n)
                                                 m2    = self.Sims.GetSimField(field2, n)
                                         #print('sto calcolando betaj')
-                                        betaj = self.Map2Betaj(m1,k, map2=m2, mask=mask, noise=noise, fsky_approx=fsky_approx,inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
+                                        betaj = self.Map2Betaj(m1,k, map2=m2, mask1=mask1, mask2=mask2, noise=noise, fsky_approx=fsky_approx,inpainting=inpainting, niter=niter, path_inpainting=path_inpainting)
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         elif (field2 is None) and (fix_field is not None): # Field1 x Fix_field (Null-test)
@@ -620,7 +610,7 @@ class NeedAnalysis(object):
                                                 m1    = self.Sims.GetSimField_Euclid(field1, n, self.lmax)
                                         else:
                                                 m1    = self.Sims.GetSimField(field1, n)
-                                        betaj = self.Map2Betaj(m1, k, map2=fix_field, mask=mask, noise=noise,fsky_approx=fsky_approx, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting, nsim=nsim)
+                                        betaj = self.Map2Betaj(m1, k, map2=fix_field, mask1=mask1, noise=noise,fsky_approx=fsky_approx, inpainting=inpainting, niter=niter, path_inpainting=path_inpainting, nsim=nsim)
                                         betaj_sims[k, :] = betaj
                                         k += 1
                         print(k, dim)
@@ -644,7 +634,7 @@ class NeedAnalysis(object):
                 #print('esco da questa funzione?')
                 return betaj_sims_tot
 
-        def GetCovMatrixFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, fname_sims=None):
+        def GetCovMatrixFromMaps(self, field1, nsim, field2=None, fix_field=None, mask1=None, mask2=None, fname=None, fname_sims=None):
                 """
                 Evaluates covariance (and correlation) matrix for simulated maps of a given field. 
 
@@ -668,27 +658,10 @@ class NeedAnalysis(object):
                 cov_betaj : array
                         array with ((jmax+1, jmax+1)) shape containing covariance matrix
                 """
-                
-                #try:
-                #        cov_betaj  = np.loadtxt(self.OutDir + fname, unpack=True)
-                #        print("...Covariance Matrix " + self.OutDir + fname + " found...")
-                #except:
-                #        # print("...simulations beta_jk's " + fname + " not found...")
-                #        print("...evaluating Covariance Matrix...")
-#
-                #        betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask=None, fname=fname_sims)
-                #        cov_betaj  = np.cov(betaj_sims.T)       
-#
-                #        if fname is not None:
-                #                print("...saving Covariance Matrix to output " + self.OutDir + fname + "...")
-                #                np.savetxt(self.OutDir + fname, cov_betaj, header='Covariance matrix <beta_j1 beta_j2>')
-                #        corr_betaj = np.corrcoef(cov_betaj)
-#
-                #return cov_betaj, corr_betaj
-
+        
                 print("...evaluating Covariance Matrix...")
 
-                betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask=None, fname=fname_sims)
+                betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask1=None, mask2=None, fname=fname_sims)
                 cov_betaj  = np.cov(betaj_sims.T) 
                 #print('fin qui ci sono')
                    
@@ -755,7 +728,7 @@ class NeedAnalysis(object):
 
                 #return Djk
 
-        def GetBetajMeanFromMaps(self, field1, nsim, field2=None, fix_field=None, mask=None, fname=None, fname_sims=None):
+        def GetBetajMeanFromMaps(self, field1, nsim, field2=None, fix_field=None, mask1=None, mask2=None,  fname=None, fname_sims=None):
                 """
                 Evaluates *mean* needlet (auto- or cross-) power spectrum for simulated maps of a given field. 
 
@@ -793,7 +766,7 @@ class NeedAnalysis(object):
                         # print("...simulations beta_jk's " + fname + " not found...")
                         print("...evaluating <beta_j>_MC...")
 
-                        betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask=mask, fname=fname_sims)
+                        betaj_sims = self.GetBetajSimsFromMaps(field1, nsim, field2=field2, fix_field=fix_field, mask1=mask1, mask2=mask2, fname=fname_sims)
                         betaj_mean = np.mean(betaj_sims, axis=0)
 
                         if fname is not None:

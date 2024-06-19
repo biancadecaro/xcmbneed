@@ -16,7 +16,7 @@ cl_TG_sims = np.zeros((nsim,lmax+1))
 cl_TG_mask_sims = np.zeros((nsim,lmax+1))
 cl_GG_mask_sims = np.zeros((nsim,lmax+1))
 
-mask = hp.read_map(f'../mask/EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits')
+mask = hp.read_map(f'../mask/EUCLID/mask_planck_comm_2018_x_euclid_binary_fsky0.359375_nside=128.fits')#hp.read_map(f'../mask/EUCLID/mask_planck_comm_2018_x_euclid_fsky0p35_nside={nside}.fits')
 fsky = np.mean(mask)
 
 fname_T = sims_dir + f'map_nbin1_NSIDE{nside}_lmax{lmax}_00678_T.fits' #sims_dir + "sim_" + ('%04d' % n) + "_galT_" + ('%04d' % nside) + ".fits"
@@ -83,20 +83,20 @@ filename_TT_mask = f'EUCLID/Euclid_combined_mask/cls_TT_anafast_nside{nside}_lma
 filename_GG_mask = f'EUCLID/Euclid_combined_mask/cls_galnoisegalnoise_anafast_nside{nside}_lmax{lmax}_Euclidnoise_Marina_nsim{nsim}_fsky{fsky:0.2f}.dat'#lmin{lmin}_marina.dat'
 
 filename_TG = f'EUCLID/Euclid_combined_mask/cls_Tgalnoise_anafast_nside{nside}_lmax{lmax}_Euclidnoise_Marina_nsim{nsim}.dat'#lmin{lmin}_marina.dat'
-filename_TG_mask = f'EUCLID/Euclid_combined_mask/cls_Tgalnoise_anafast_nside{nside}_lmax{lmax}_Euclidnoise_Marina_nsim{nsim}_fsky{fsky:0.2f}.dat'#lmin{lmin}_marina.dat'
+filename_TG_mask = f'EUCLID/Euclid_combined_mask_binary/cls_Tgalnoise_anafast_nside{nside}_lmax{lmax}_Euclidnoise_Marina_nsim{nsim}_fsky{fsky:0.2f}.dat'#lmin{lmin}_marina.dat'
 #filename_GG = f'EUCLID/cls_galgalnoise_anafast_nside{nside}_lmax{lmax}_Euclidnoise_Marina_nsim{nsim}_nuova_mask.dat'#lmin{lmin}_marina.dat'
 filename_map_GG = f'EUCLID/Euclid_combined_mask/cls_galgalnoise_map_nside{nside}_lmax{lmax}_Euclidnoise_Marina_nsim{nsim}.fits'
 filename_map_GG_mask = f'EUCLID/Euclid_combined_mask/cls_galgalnoise_map_nside{nside}_lmax{lmax}_Euclidnoise_Marina_nsim{nsim}_fsky{fsky:0.2f}.fits'
 #np.savetxt(filename_TT, cl_TT_sims)
 #np.savetxt(filename_TG, cl_TG_sims)
 #np.savetxt(filename_GG, cl_GG_sims)
-hp.write_map(filename_map_GG,mapgal, overwrite=True)
-hp.write_map(filename_map_GG_mask,mapgal_mask, overwrite=True)
+#hp.write_map(filename_map_GG,mapgal, overwrite=True)
+#hp.write_map(filename_map_GG_mask,mapgal_mask, overwrite=True)
 
-np.savetxt(filename_TT, cl_TT_sims)
-np.savetxt(filename_GG, cl_GG_sims)
-np.savetxt(filename_TT_mask, cl_TT_mask_sims)
-np.savetxt(filename_GG_mask, cl_GG_mask_sims)
+#np.savetxt(filename_TT, cl_TT_sims)
+#np.savetxt(filename_GG, cl_GG_sims)
+#np.savetxt(filename_TT_mask, cl_TT_mask_sims)
+#np.savetxt(filename_GG_mask, cl_GG_mask_sims)
 np.savetxt(filename_TG_mask, cl_TG_mask_sims)
-np.savetxt(filename_TG, cl_TG_sims)
+#np.savetxt(filename_TG, cl_TG_sims)
 
