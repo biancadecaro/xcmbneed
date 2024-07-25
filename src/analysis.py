@@ -395,12 +395,13 @@ class NeedAnalysis(object):
                 fsky = 1.
                 
                 if mask1 is not None:
-                        fsky1  = np.mean(mask1) 
+                        #fsky1  = np.mean(mask1) 
                         bad_v = np.where(mask1==0)
-                        good_v = np.where(mask1!=0)
+                        #good_v = np.where(mask1!=0)
                         map1[bad_v]=hp.UNSEEN
                         #monopole1 = np.mean(map1[good_v])
                         #map1=map1-monopole1
+                        #map1 = hp.remove_dipole(map1)
                 else:
                         map1 = hp.remove_dipole(map1, verbose=False)#.compressed() # BIANCA ho aggiunto else
                 
@@ -418,7 +419,7 @@ class NeedAnalysis(object):
                                #map2 *= mask 
                                print(f'fsky mappa 2={np.mean(mask2) :0.2f}')
                                bad_v_2 = np.where(mask2==0)  #BIANCA aggiunto da 409 a 413 
-                               good_v_2 = np.where(mask2!=0)
+                               #good_v_2 = np.where(mask2!=0)
                                map2[bad_v_2]=hp.UNSEEN
                                #monopole2 = np.mean(map2[good_v_2])
                                #map2=map2-monopole2

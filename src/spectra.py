@@ -150,15 +150,12 @@ class NeedletTheory(object):
         """
         #assert(np.floor(self.B**(jmax+1)) <= ell.size-1) 
         
-        bjl  = self.b_values**2#np.zeros((jmax+1,lmax+1))
+        bjl  = self.b_values**2
         ell  = np.arange(lmax+1)*np.ones((bjl.shape[0], lmax+1))
         ellj =np.zeros((bjl.shape[0], lmax+1))
 
         for j in range(bjl.shape[0]):
-            #b2 = self.b_need(ell[j]/self.B**j)**2
-            #b2[np.isnan(b2)] = 0.
             bjl[j,:][bjl[j,:]!=0] = 1.
-            #bjl[j,:] = b2
             ellj[j,:] = ell[j,:]*bjl[j,:]
         return ellj 
 

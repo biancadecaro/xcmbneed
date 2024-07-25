@@ -13,9 +13,13 @@ import analysis, utils, spectra, sims
 from IPython import embed
 import seaborn as sns
 
-sns.set()
-sns.set(style = 'white')
-
+sns.set_theme(style = 'white')
+plt.rcParams['lines.linewidth']  = 2.
+plt.rcParams['axes.labelsize']  =14
+plt.rcParams['xtick.major.width'] = 1
+plt.rcParams['ytick.major.width'] = 1
+plt.rcParams['xtick.minor.width'] = 1
+plt.rcParams['ytick.minor.width'] = 1
 
 import matplotlib as mpl
 mpl.rc('xtick', direction='in', top=True, bottom = True)
@@ -29,7 +33,7 @@ formatter.set_powerlimits((-1,1))
 
 # Parameters
 simparams = {'nside'   : 128,
-             'ngal'    : 35454308.580126834, #dovrebbe importare solo per lo shot noise (noise poissoniano)
+             'ngal'    : 354543085.80126834,#35454308.580126834, #dovrebbe importare solo per lo shot noise (noise poissoniano)
  	     	 'ngal_dim': 'ster',
 	     	 'pixwin'  : False}
 
@@ -88,16 +92,19 @@ if not os.path.exists(out_dir_plot):
 need_theory = spectra.NeedletTheory(myanalysis.B)
 b_need = need_theory.get_bneed(jmax, lmax)
 
-fig, ax1  = plt.subplots(1,1,figsize=(7,5)) 
-plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
+fig, ax1  = plt.subplots(1,1,figsize=(5.3,4), dpi=100) 
+#plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
 
-for i in range(b_need.shape[0]):
+for i in range(1,jmax):
     ax1.plot(b_need[i]*b_need[i], label = 'j='+str(i) )
 ax1.set_xscale('log')
+ax1.set_xlim([0.40, 350 ])
 ax1.set_xlabel(r'$\ell$')
 ax1.set_ylabel(r'$w^{2}(\frac{\ell}{D^{j}})$')
-ax1.legend(loc='right')
+ax1.legend(loc='upper left', fontsize=9)
 plt.tight_layout()
+plt.savefig(out_dir_plot+'b_values_needlets_D1p59.png')
+plt.show()
 
 ell_binning=need_theory.ell_binning(jmax, lmax)
 fig = plt.figure()
@@ -114,25 +121,30 @@ plt.tight_layout()
 
 
 
-with fits.open('mask/EUCLID/kern_RSD2022G_T_G_TT.fits') as hdul:
-    Mll_cross = hdul[0].data
+#with fits.open('mask/EUCLID/kern_RSD2022G_T_G_TT.fits') as hdul:
+#    Mll_cross = hdul[0].data
 
-wl_pl_eu = hp.anafast(map1=mask_pl, map2=mask_eu, lmax=lmax)
-wl_comb = hp.anafast(map1=mask_comb, map2=mask_comb, lmax=lmax)
+wl_pl_eu = hp.anafast(map1=mask_pl, map2=mask_eu, lmax=2*lmax) # stima dello spettro
+wl_comb = hp.anafast(map1=mask_comb, map2=mask_comb, lmax=2*lmax)
 Mll_pl_eu  = need_theory.get_Mll(wl_pl_eu, lmax=lmax)
+Mll_comb  = need_theory.get_Mll(wl_comb, lmax=lmax)
 np.savetxt(f'mask/EUCLID/kernel_Euclid_Planck_TTGG_lmax{lmax}.dat',Mll_pl_eu)
-#Mll_cross  = need_theory.get_Mll(wl_comb, lmax=lmax)
-print(f'fsky_eu:{fsky_eu}, fsky_comb:{fsky_comb}, sum Mll TTGG{np.sum(Mll_pl_eu[45])}, sum Mll TGTG{np.sum(Mll_cross[45])}')
+np.savetxt(f'mask/EUCLID/kernel_Euclid_Planck_TGTG_lmax{lmax}.dat',Mll_comb)
+print(f'fsky_eu:{fsky_eu}, fsky_comb:{fsky_comb}, sum Mll TTGG{np.sum(Mll_pl_eu[45])}, sum Mll TGTG{np.sum(Mll_comb[45])}')
 
-gammaJ_tg = need_theory.gammaJ(cl_theory_tg, Mll_cross, lmax)
-delta_gammaj = need_theory.variance_gammaj(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, Mll_1x2=Mll_cross, Mll=Mll_pl_eu, jmax=jmax, lmax=lmax, noise_gal_l=Nll)
+gammaJ_tg = need_theory.gammaJ(cl_theory_tg, Mll_pl_eu, lmax)
+delta_gammaj = need_theory.variance_gammaj(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, Mll_1x2=Mll_comb, Mll=Mll_pl_eu, jmax=jmax, lmax=lmax, noise_gal_l=Nll)
+
+
 np.savetxt(out_dir+f'gammaj_tg_jmax{jmax}_lmax{lmax}.dat',gammaJ_tg)
 np.savetxt(out_dir+f'covariance_gammaj_tg_jmax{jmax}_lmax{lmax}.dat', delta_gammaj)
 
 # Computing simulated Betaj 
 print("...computing Betajs for simulations...")
 fname_gammaj_sims_TS_galT_mask = f'gamma_sims_TS_galT_jmax{jmax}_B_{myanalysis.B:0.2f}_nside{nside}_fsky{fsky_comb:0.2f}.dat'
+fname_gammaj_sims_TS_galT = f'gamma_sims_TS_galT_jmax{jmax}_B_{myanalysis.B:0.2f}_nside{nside}.dat'
 
+#gammaj_sims_TS_galT = myanalysis.GetBetajSimsFromMaps('T', nsim, field2='g1noise', fname=fname_gammaj_sims_TS_galT, fsky_approx=False,EuclidSims=True)
 gammaj_sims_TS_galT_mask  = myanalysis.GetBetajSimsFromMaps('T', nsim, field2='g1noise', mask1=mask_pl, mask2=mask_eu, fname=fname_gammaj_sims_TS_galT_mask, fsky_approx=False,EuclidSims=True)
 
 # Covariances
@@ -185,7 +197,7 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'$\tilde{\Gamma}^{\mathrm{\,TG}}_j$')
 
 fig.tight_layout()
-plt.savefig(out_dir_plot+f'gammaJ_D{B:1.2f}.png')
+#plt.savefig(out_dir_plot+f'gammaJ_D{B:1.2f}.png')
 #plt.show()
 
 ##RELATIVE DIFFERENCE
@@ -210,8 +222,9 @@ ax.set_ylabel(r'$\% \langle \tilde{\Gamma}_j^{TG} \rangle/\tilde{\Gamma}_j^{TG, 
 #ax.set_ylim([-0.3,1.3])
 
 fig.tight_layout()
-plt.savefig(out_dir_plot+f'relative_diff_gammaJ_D{B:1.2f}.png')
+#plt.savefig(out_dir_plot+f'relative_diff_gammaJ_D{B:1.2f}.png')
 #plt.show()
+
 
 ####################################################################################
 ############################# DIFF COVARIANCES #####################################
@@ -233,8 +246,47 @@ ax.set_xticklabels(jvec[1:])
 ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'% $(\Delta \Gamma)^2_{\mathrm{sims}}/(\Delta \Gamma)^2_{\mathrm{analytic}}$ - 1')
 fig.tight_layout()
-plt.savefig(out_dir_plot+f'relative_diff_diag_cov_D{B:1.2f}.png')
+#plt.savefig(out_dir_plot+f'relative_diff_diag_cov_D{B:1.2f}.png')
 #plt.show()
+
+### sigma
+fig = plt.figure()#figsize=(10,7))
+
+plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+
+ax = fig.add_subplot(1, 1, 1)
+
+ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_TS_galT_mask)[1:])/np.sqrt(np.diag(delta_gammaj)[1:])-1)*100 ,'o',color='#2b7bbc')#, label='MASK')
+ax.axhline(ls='--', color='grey')
+
+plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.yaxis.set_major_formatter(formatter) 
+ax.set_xticks(myanalysis.jvec[1:])
+ax.set_xticklabels(myanalysis.jvec[1:])
+ax.set_xlabel(r'$j$')
+ax.set_ylabel(r'% $\sigma_{\mathrm{sims}}/\sigma_{\mathrm{analytic}}$ - 1')
+
+fig.tight_layout()
+#############################################################################
+################# DIFF OVER SIGMA ##########################
+
+fig = plt.figure()#figsize=(10,7))
+
+plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+
+ax = fig.add_subplot(1, 1, 1)
+
+ax.plot(myanalysis.jvec[1:], (gammaj_TS_galT_mask_mean[1:]-gammaJ_tg[1:])/(np.sqrt(np.diag(delta_gammaj)[1:])/np.sqrt(nsim)) ,'o',color='#2b7bbc')#, label='MASK')
+ax.axhline(ls='--', color='grey')
+
+plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.yaxis.set_major_formatter(formatter) 
+ax.set_xticks(myanalysis.jvec[1:])
+ax.set_xticklabels(myanalysis.jvec[1:])
+ax.set_xlabel(r'$j$')
+ax.set_ylabel(r'$\Delta \Gamma_{j}^{\rm TG}/\sigma$')
+
+fig.tight_layout()
 
 ################################################################################
 ###PSEUDO
@@ -277,16 +329,16 @@ def cov_cl(cltg,cltt, clgg, lmax,lmin, fsky=1.,noise_gal_l=None):
                 covll[l,ll] = (cltg[lmin:][l]*cltg[lmin:][ll]+np.sqrt(cltt[lmin:][l]*cltt[lmin:][ll]*clgg_tot[lmin:][l]*clgg_tot[lmin:][ll]))/(fsky*(2.*ell1+1))
     return covll
 
-cls_tg = np.loadtxt('cls_from_maps/EUCLID/Euclid_Planck_masks/cls_Tgalnoise_anafast_nside128_lmax256_Euclidnoise_Marina_nsim1000_fsky0.35.dat')
+cls_tg = np.loadtxt('cls_from_maps/EUCLID/Euclid_Planck_masks/cls_Tgalnoise_anafast_nside128_lmax256_Euclidnoise_Marina_nsim1000_fsky0.36.dat')
 cls_tg_mean=np.mean(cls_tg, axis=0)
 
-pcl = np.dot(Mll_cross,cl_theory_tg[:lmax+1]) 
-cl_recovered = np.dot(np.linalg.inv(Mll_cross[2:,2:]), cls_tg_mean[2:]) 
+pcl = np.dot(Mll_pl_eu,cl_theory_tg[:lmax+1]) 
+cl_recovered = np.dot(np.linalg.inv(Mll_pl_eu[2:,2:]), cls_tg_mean[2:]) 
 
 
 cov_pcl_sim = np.cov(cls_tg.T)
 
-cov_pcl= cov_pseudo_cl(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, Mll=Mll_pl_eu,  Mll_1x2=Mll_cross, lmax=lmax,noise_gal_l=Nll)
+cov_pcl= cov_pseudo_cl(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, Mll=Mll_pl_eu,  Mll_1x2=Mll_comb, lmax=lmax,noise_gal_l=Nll)
 cov_cls = cov_cl(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, lmax=lmax,lmin=2,noise_gal_l=Nll)
 
 ell = np.arange(lmax+1)
@@ -326,21 +378,22 @@ ax.set_ylabel('% relative diff ')
 plt.legend()
 #plt.show()
 
-fig = plt.figure()#figsize=(10,7))
+fig = plt.figure()
 
 plt.suptitle(r'Mask PCL $ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~f_{sky} = %.2f$'%fsky_comb)
 
 ax = fig.add_subplot(1, 1, 1)
 
 ax.plot(ell[2:], (np.diag(cov_pcl_sim)[2:]/np.diag(cov_pcl)[2:]-1)*100 ,'o')
-
 ax.axhline(ls='--', color='grey')
+ax.set_ylim([-30,30])
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
 ax.set_xticks(np.arange(2, lmax+1,10))
 ax.set_xticklabels(np.arange(2, lmax+1,10),rotation=40)
 ax.set_xlabel(r'$\ell$')
 ax.set_ylabel('% diag(sim cov)/diag(analyt cov)-1')
+plt.legend()
 fig.tight_layout()
 #plt.show()
 
