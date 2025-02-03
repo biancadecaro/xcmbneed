@@ -17,18 +17,18 @@ contains
   subroutine get_Mll(wl, lmax, mll)
     integer, parameter  :: dp = 4
     integer, intent(in) :: lmax
-    real(dp), intent(in), dimension(0:lmax)  :: wl
+    real(dp), intent(in), dimension(0:2*lmax)  :: wl
     real(dp), intent(out), dimension(0:lmax, 0:lmax) :: mll
 
     real(dp), parameter  :: one_fourpi = 1.d0 / (atan(1.) * 16.d0)
     integer :: l1, l2, l3min, l3max, dim, ier, l, lwig
     real(dp) :: rl1, rl2, rl3min, rl3max, numb
-    real(dp), dimension(0:2*lmax) :: wigner!(0:2*lmax)
-    real(dp), dimension(0:lmax)   :: ell
+    real(dp), dimension(0:2*lmax) :: wigner!(0:lmax)
+    real(dp), dimension(0:2*lmax)   :: ell
     
     wigner = 0.
 
-    ell = [(l, l = 0,lmax)]
+    ell = [(l, l = 0,2*lmax)]
 
     do l1 = 0, lmax
       rl1 = real(l1, kind = dp)
@@ -41,7 +41,7 @@ contains
              stop
           endif
           l3min = int(rl3min)
-          l3max =  min(int(rl3max), lmax)!int(rl3max)!min(int(rl3max), lmax)
+          l3max =  int(rl3max)!min(int(rl3max), lmax)
           !write(*,*) 'rl3min=',l3min, 'rl3max=',rl3max,'l3max=',l3max, 'lmax=', lmax
           
           numb = 0.

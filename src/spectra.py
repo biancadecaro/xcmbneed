@@ -250,7 +250,7 @@ class NeedletTheory(object):
         if lmax == None:
             lmax = wl.size-1
         assert(lmax <= wl.size-1)
-        return np.float64(mll.get_mll(wl[:lmax+1], lmax))
+        return np.float64(mll.get_mll(wl, lmax))
 
     def gamma_bf(self, wl, jmax, lmax):
         """
