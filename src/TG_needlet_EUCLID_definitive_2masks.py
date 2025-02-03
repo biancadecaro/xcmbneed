@@ -33,9 +33,9 @@ formatter.set_powerlimits((-1,1))
 
 # Parameters
 simparams = {'nside'   : 128,
-             'ngal'    : 354543085.80126834,#35454308.580126834, #dovrebbe importare solo per lo shot noise (noise poissoniano)
- 	     	 'ngal_dim': 'ster',
-	     	 'pixwin'  : False}
+			 'ngal'    : 354543085.80126834,#35454308.580126834, #dovrebbe importare solo per lo shot noise (noise poissoniano)
+ 		 	 'ngal_dim': 'ster',
+		 	 'pixwin'  : False}
 
 nside = simparams['nside']
 
@@ -86,7 +86,7 @@ B=myanalysis.B
 jvec = myanalysis.jvec
 out_dir_plot    = out_dir+f'plot_D{B:1.2f}/'
 if not os.path.exists(out_dir_plot):
-        os.makedirs(out_dir_plot)
+		os.makedirs(out_dir_plot)
 
 # Theory Needlet theory and windows functions
 need_theory = spectra.NeedletTheory(myanalysis.B)
@@ -96,7 +96,7 @@ fig, ax1  = plt.subplots(1,1,figsize=(5.3,4), dpi=100)
 #plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
 
 for i in range(1,jmax):
-    ax1.plot(b_need[i]*b_need[i], label = 'j='+str(i) )
+	ax1.plot(b_need[i]*b_need[i], label = 'j='+str(i) )
 ax1.set_xscale('log')
 ax1.set_xlim([0.40, 350 ])
 ax1.set_xlabel(r'$\ell$')
@@ -111,9 +111,9 @@ fig = plt.figure()
 plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
 ax = fig.add_subplot(1, 1, 1)
 for i in range(0,jmax+1):
-    ell_range = ell_binning[i][ell_binning[i]!=0]
-    plt.plot(ell_range, i*ell_range/ell_range, label= f'j={i}')
-    plt.text(ell_range[0], i, r'$\ell_{min}=%d,\,\ell_{max}=%d$'%(ell_range[0],ell_range[-1]))
+	ell_range = ell_binning[i][ell_binning[i]!=0]
+	plt.plot(ell_range, i*ell_range/ell_range, label= f'j={i}')
+	plt.text(ell_range[0], i, r'$\ell_{min}=%d,\,\ell_{max}=%d$'%(ell_range[0],ell_range[-1]))
 
 ax.set_xlabel(r'$\ell$')
 ax.legend(loc='right', ncol=2)
@@ -292,42 +292,42 @@ fig.tight_layout()
 ###PSEUDO
 
 def cov_pseudo_cl(cltg,cltt, clgg,Mll,  Mll_1x2, lmax, noise_gal_l=None):
-    """
-    Returns the Cov(Pseudo-C_\ell, Pseudo-C_\ell') 
-    Notes
-    -----
-    Cov(Pseudo-C_\ell, Pseudo-C_\ell') .shape = (lmax+1, lmax+1)
-    """
-    if noise_gal_l is not None:
-        clgg_tot = clgg+noise_gal_l
-    else:
-        clgg_tot = clgg
-    ell= np.arange(lmax+1)
-    covll = np.zeros((ell.shape[0],ell.shape[0]))
-    for l,ell1 in enumerate(ell):
-        for ll,ell2 in enumerate(ell):
-            covll[l,ll] = (Mll_1x2[l,ll]*(cltg[l]*cltg[ll])+Mll[l,ll]*(np.sqrt(cltt[l]*cltt[ll]*clgg_tot[l]*clgg_tot[ll])))/(2.*ell1+1)
-    return covll
+	"""
+	Returns the Cov(Pseudo-C_\ell, Pseudo-C_\ell') 
+	Notes
+	-----
+	Cov(Pseudo-C_\ell, Pseudo-C_\ell') .shape = (lmax+1, lmax+1)
+	"""
+	if noise_gal_l is not None:
+		clgg_tot = clgg+noise_gal_l
+	else:
+		clgg_tot = clgg
+	ell= np.arange(lmax+1)
+	covll = np.zeros((ell.shape[0],ell.shape[0]))
+	for l,ell1 in enumerate(ell):
+		for ll,ell2 in enumerate(ell):
+			covll[l,ll] = (Mll_1x2[l,ll]*(cltg[l]*cltg[ll])+Mll[l,ll]*(np.sqrt(cltt[l]*cltt[ll]*clgg_tot[l]*clgg_tot[ll])))/(2.*ell1+1)
+	return covll
 
 def cov_cl(cltg,cltt, clgg, lmax,lmin, fsky=1.,noise_gal_l=None):
-    """
-    Returns the Cov(Pseudo-C_\ell, Pseudo-C_\ell') 
-    Notes
-    -----
-    Cov(Pseudo-C_\ell, Pseudo-C_\ell') .shape = (lmax+1, lmax+1)
-    """
-    if noise_gal_l is not None:
-        clgg_tot = clgg+noise_gal_l
-    else:
-        clgg_tot = clgg
-    ell= np.arange(lmin, lmax+1)
-    covll = np.zeros(( ell.shape[0], ell.shape[0]))
-    for l,ell1 in enumerate(ell):
-        for ll,ell2 in enumerate(ell):
-            if l!=ll: covll[l,ll]=0
-            else:
-                covll[l,ll] = (cltg[lmin:][l]*cltg[lmin:][ll]+np.sqrt(cltt[lmin:][l]*cltt[lmin:][ll]*clgg_tot[lmin:][l]*clgg_tot[lmin:][ll]))/(fsky*(2.*ell1+1))
-    return covll
+	"""
+	Returns the Cov(Pseudo-C_\ell, Pseudo-C_\ell') 
+	Notes
+	-----
+	Cov(Pseudo-C_\ell, Pseudo-C_\ell') .shape = (lmax+1, lmax+1)
+	"""
+	if noise_gal_l is not None:
+		clgg_tot = clgg+noise_gal_l
+	else:
+		clgg_tot = clgg
+	ell= np.arange(lmin, lmax+1)
+	covll = np.zeros(( ell.shape[0], ell.shape[0]))
+	for l,ell1 in enumerate(ell):
+		for ll,ell2 in enumerate(ell):
+			if l!=ll: covll[l,ll]=0
+			else:
+				covll[l,ll] = (cltg[lmin:][l]*cltg[lmin:][ll]+np.sqrt(cltt[lmin:][l]*cltt[lmin:][ll]*clgg_tot[lmin:][l]*clgg_tot[lmin:][ll]))/(fsky*(2.*ell1+1))
+	return covll
 
 cls_tg = np.loadtxt('cls_from_maps/EUCLID/Euclid_Planck_masks/cls_Tgalnoise_anafast_nside128_lmax256_Euclidnoise_Marina_nsim1000_fsky0.36.dat')
 cls_tg_mean=np.mean(cls_tg, axis=0)
@@ -401,55 +401,55 @@ fig.tight_layout()
 ######################### SIGNAL - TO - NOISE ###########################
 
 def fl_j(j_m):
-    ell_binning=need_theory.ell_binning(jmax, lmax)
-    l_j = np.zeros(j_m+1, dtype=int)
-    
-    for j in range(1,j_m+1):
-            ell_range = ell_binning[j][ell_binning[j]!=0]
-            if ell_range.shape[0] == 1:
-                l_j[j] = ell_range
-            else:
-                l_j[j] = int(ell_range[int(np.ceil((len(ell_range))/2))])
-    return l_j
+	ell_binning=need_theory.ell_binning(jmax, lmax)
+	l_j = np.zeros(j_m+1, dtype=int)
+	
+	for j in range(1,j_m+1):
+			ell_range = ell_binning[j][ell_binning[j]!=0]
+			if ell_range.shape[0] == 1:
+				l_j[j] = ell_range
+			else:
+				l_j[j] = int(ell_range[int(np.ceil((len(ell_range))/2))])
+	return l_j
 
 def S_2_N(beta, cov_matrix):
-    s_n = np.zeros(len(beta))
-    cov_inv = np.linalg.inv(cov_matrix)
-    temp = np.zeros(len(cov_matrix[0]))
-    for i in range(len(cov_matrix[0])):
-        for j in range(len(beta)):
-            temp[i] += cov_inv[i][j]*beta[j]
-        s_n[i] = beta[i].T*temp[i]
-    return s_n
+	s_n = np.zeros(len(beta))
+	cov_inv = np.linalg.inv(cov_matrix)
+	temp = np.zeros(len(cov_matrix[0]))
+	for i in range(len(cov_matrix[0])):
+		for j in range(len(beta)):
+			temp[i] += cov_inv[i][j]*beta[j]
+		s_n[i] = beta[i].T*temp[i]
+	return s_n
 
 def S_2_N_th(beta, variance):
-    s_n = np.divide((beta)**2, variance)
-    return s_n
+	s_n = np.divide((beta)**2, variance)
+	return s_n
 
 def S_2_N_cum(s2n, jmax):
-    s2n_cum = np.zeros(jmax.shape[0])
-    for j,jj in enumerate(jmax):
-        for ijj in range(jj):
-            s2n_cum[j] +=s2n[ijj]
-        s2n_cum[j]= np.sqrt(s2n_cum[j])      
-    return s2n_cum
+	s2n_cum = np.zeros(jmax.shape[0])
+	for j,jj in enumerate(jmax):
+		for ijj in range(jj):
+			s2n_cum[j] +=s2n[ijj]
+		s2n_cum[j]= np.sqrt(s2n_cum[j])      
+	return s2n_cum
 
 def S_2_N_ell(cltg, cov):
-    icov= np.linalg.inv(cov)
-    nell  = cltg.shape[0]
-    s2n = np.zeros(nell)
-    for il in range(nell):
-        for iil in range(nell):
-            s2n[il] += np.dot(cltg[il], np.dot(icov[il, iil], cltg[iil]))
-    return s2n
+	icov= np.linalg.inv(cov)
+	nell  = cltg.shape[0]
+	s2n = np.zeros(nell)
+	for il in range(nell):
+		for iil in range(nell):
+			s2n[il] += np.dot(cltg[il], np.dot(icov[il, iil], cltg[iil]))
+	return s2n
 
 def S_2_N_cum_ell(s2n, lmax):
-    s2n_cum = np.zeros(lmax.shape[0])
-    for l,ell in enumerate(lmax):
-        for ill in range(ell):
-            s2n_cum[l] += s2n[ill]
-        s2n_cum[l]= np.sqrt(s2n_cum[l])      
-    return s2n_cum
+	s2n_cum = np.zeros(lmax.shape[0])
+	for l,ell in enumerate(lmax):
+		for ill in range(ell):
+			s2n_cum[l] += s2n[ill]
+		s2n_cum[l]= np.sqrt(s2n_cum[l])      
+	return s2n_cum
 
 lmax_vec=fl_j(jmax)
 lmax_vec_cl = np.arange(start=2,stop=256,dtype=int)
