@@ -362,6 +362,7 @@ class NeedletTheory(object):
         covll = np.zeros((lmax+1, lmax+1))
         for ell1 in range(lmax+1):
             for ell2 in range(lmax+1):
+                #covll[ell1,ell2] = Mll[ell1,ell2]*(cltg[ell1]*cltg[ell2]+np.sqrt(cltt[ell1]*cltt[ell2]*clgg_tot[ell1]*clgg_tot[ell2]))/(2.*ell1+1)
                 covll[ell1,ell2] = (Mll_1x2[ell1,ell2]*(cltg[ell1]*cltg[ell2])+Mll[ell1,ell2]*(np.sqrt(cltt[ell1]*cltt[ell2]*clgg_tot[ell1]*clgg_tot[ell2])))/(2.*ell1+1)
         delta_gammaj = np.dot(bjl, np.dot(covll, bjl.T))
         return delta_gammaj/(4*np.pi)**2

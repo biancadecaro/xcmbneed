@@ -12,6 +12,10 @@ import cython_mylibc as mylibc
 import analysis, utils, spectra, sims
 from IPython import embed
 import seaborn as sns
+sns.set_theme()
+sns.set_theme(style = 'white')
+pal = sns.color_palette("crest", n_colors=13)
+pal_cmap = sns.color_palette("crest", n_colors=13, as_cmap=True)
 
 sns.set_theme(style = 'white')
 plt.rcParams['lines.linewidth']  = 2.
@@ -20,6 +24,7 @@ plt.rcParams['xtick.major.width'] = 1
 plt.rcParams['ytick.major.width'] = 1
 plt.rcParams['xtick.minor.width'] = 1
 plt.rcParams['ytick.minor.width'] = 1
+plt.rcParams['savefig.dpi']=300
 
 import matplotlib as mpl
 mpl.rc('xtick', direction='in', top=True, bottom = True)
@@ -96,28 +101,29 @@ fig, ax1  = plt.subplots(1,1,figsize=(5.3,4), dpi=100)
 #plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
 
 for i in range(1,jmax):
-	ax1.plot(b_need[i]*b_need[i], label = 'j='+str(i) )
+	ax1.plot(b_need[i]*b_need[i], c=pal[i])#, label = 'j='+str(i) )
 ax1.set_xscale('log')
 ax1.set_xlim([0.40, 350 ])
 ax1.set_xlabel(r'$\ell$')
 ax1.set_ylabel(r'$w^{2}(\frac{\ell}{D^{j}})$')
-ax1.legend(loc='upper left', fontsize=9)
+#ax1.legend(loc='upper left', fontsize=9)
+plt.grid(True)
 plt.tight_layout()
 plt.savefig(out_dir_plot+'b_values_needlets_D1p59.png')
 plt.show()
 
-ell_binning=need_theory.ell_binning(jmax, lmax)
-fig = plt.figure()
-plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
-ax = fig.add_subplot(1, 1, 1)
-for i in range(0,jmax+1):
-	ell_range = ell_binning[i][ell_binning[i]!=0]
-	plt.plot(ell_range, i*ell_range/ell_range, label= f'j={i}')
-	plt.text(ell_range[0], i, r'$\ell_{min}=%d,\,\ell_{max}=%d$'%(ell_range[0],ell_range[-1]))
-
-ax.set_xlabel(r'$\ell$')
-ax.legend(loc='right', ncol=2)
-plt.tight_layout()
+#ell_binning=need_theory.ell_binning(jmax, lmax)
+#fig = plt.figure()
+#plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax))
+#ax = fig.add_subplot(1, 1, 1)
+#for i in range(0,jmax+1):
+#	ell_range = ell_binning[i][ell_binning[i]!=0]
+#	plt.plot(ell_range, i*ell_range/ell_range, label= f'j={i}')
+#	plt.text(ell_range[0], i, r'$\ell_{min}=%d,\,\ell_{max}=%d$'%(ell_range[0],ell_range[-1]))
+#
+#ax.set_xlabel(r'$\ell$')
+#ax.legend(loc='right', ncol=2)
+#plt.tight_layout()
 
 
 
@@ -128,6 +134,22 @@ wl_pl_eu = hp.anafast(map1=mask_pl, map2=mask_eu, lmax=2*lmax) # stima dello spe
 wl_comb = hp.anafast(map1=mask_comb, map2=mask_comb, lmax=2*lmax)
 Mll_pl_eu  = need_theory.get_Mll(wl_pl_eu, lmax=lmax)
 Mll_comb  = need_theory.get_Mll(wl_comb, lmax=lmax)
+
+
+fig = plt.figure()
+plt.imshow((Mll_comb/Mll_pl_eu), cmap= pal_cmap)
+
+
+#seed = 47326423
+#mask_comb = hp.synfast(wl_comb, nside=nside,lmax=lmax)
+#mask_pl_eu = hp.synfast(wl_pl_eu, nside=nside,lmax=lmax)
+#fig=plt.figure()
+#fig.add_subplot(121)
+#hp.mollview(mask_comb, cmap='viridis', title = 'comb',hold=True)
+#fig.add_subplot(122)
+#hp.mollview(mask_pl_eu, cmap='viridis', title = 'pl eu',hold=True)
+#plt.show()
+
 np.savetxt(f'mask/EUCLID/kernel_Euclid_Planck_TTGG_lmax{lmax}.dat',Mll_pl_eu)
 np.savetxt(f'mask/EUCLID/kernel_Euclid_Planck_TGTG_lmax{lmax}.dat',Mll_comb)
 print(f'fsky_eu:{fsky_eu}, fsky_comb:{fsky_comb}, sum Mll TTGG{np.sum(Mll_pl_eu[45])}, sum Mll TGTG{np.sum(Mll_comb[45])}')
@@ -267,6 +289,8 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'% $\sigma_{\mathrm{sims}}/\sigma_{\mathrm{analytic}}$ - 1')
 
 fig.tight_layout()
+
+
 #############################################################################
 ################# DIFF OVER SIGMA ##########################
 
