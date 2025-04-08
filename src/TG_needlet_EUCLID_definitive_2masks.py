@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 from matplotlib import rc, rcParams, gridspec
 import healpy as hp
 from astropy.io import fits
-import argparse, os, sys, warnings, glob
+import os
 import cython_mylibc as mylibc
-import analysis, utils, spectra, sims
+import analysis, spectra, sims
 from IPython import embed
 import seaborn as sns
 sns.set_theme()
@@ -51,7 +51,7 @@ jmax= 12
 # Paths
 fname_xcspectra = 'spectra/inifiles/EUCLID_fiducial_lmin0.dat'
 sims_dir        = f'sims/Euclid_sims_Marina/NSIDE{nside}/'
-out_dir         = f'output_needlet_TG/EUCLID/Mask_noise/TG_{nside}_nsim{nsim}_2masks/'
+out_dir         = f'output_needlet_TG/EUCLID/Mask_noise/TG_{nside}_nsim{nsim}_2masks_1/'
 path_inpainting = 'inpainting/inpainting.py'
 
 
@@ -127,8 +127,8 @@ plt.show()
 
 
 
-#with fits.open('mask/EUCLID/kern_RSD2022G_T_G_TT.fits') as hdul:
-#    Mll_cross = hdul[0].data
+with fits.open('mask/EUCLID/kern_RSD2022G_T_G_TT.fits') as hdul:
+    Mll_cross = hdul[0].data
 
 wl_pl_eu = hp.anafast(map1=mask_pl, map2=mask_eu, lmax=2*lmax) # stima dello spettro
 wl_comb = hp.anafast(map1=mask_comb, map2=mask_comb, lmax=2*lmax)
@@ -137,7 +137,7 @@ Mll_comb  = need_theory.get_Mll(wl_comb, lmax=lmax)
 
 
 fig = plt.figure()
-plt.imshow((Mll_comb/Mll_pl_eu), cmap= pal_cmap)
+plt.imshow((Mll_cross/Mll_pl_eu), cmap= pal_cmap)
 
 
 #seed = 47326423
@@ -311,11 +311,34 @@ ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'$\Delta \Gamma_{j}^{\rm TG}/\sigma$')
 
 fig.tight_layout()
+################################################################################
+fig = plt.figure(figsize=(8,6))
+gs = fig.add_gridspec(3, hspace=0)
+axs = gs.subplots(sharex=True, sharey=False)
+
+plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+
+axs[0].errorbar(myanalysis.jvec[1:jmax],gammaj_TS_galT_mask_mean[1:jmax]*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax]*7.4311e12)/(np.sqrt(nsim)) , fmt='o', ms=3,capthick=1,capsize=3)
+axs[0].errorbar(myanalysis.jvec[1:jmax],gammaj_TS_galT_mask_mean[1:jmax]*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax]*7.4311e12) ,color='grey', fmt='o', ms=3,capthick=1,capsize=3)
+axs[0].plot(myanalysis.jvec[1:jmax], 1e2*gammaJ_tg[1:jmax]*np.sqrt(7.4311e12), color='k')
+axs[0].set_ylabel(r'$ \tilde{\Gamma}_j^{TG}  ~[10^{-2}~\mu K]$')
+
+axs[1].axhline(color='k', ls='--',linewidth=1.0)
+axs[1].errorbar(myanalysis.jvec[1:jmax], (gammaj_TS_galT_mask_mean[1:jmax]-gammaJ_tg[1:jmax])*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax]*7.4311e12)/(np.sqrt(nsim)),  fmt='o', ms=3,capthick=1,capsize=3)
+axs[1].set_ylabel(r'$\Delta \tilde{\Gamma}_j^{TG}  ~[10^{-2}~\mu K]$')
+
+axs[2].axhline(color='k', ls='--',linewidth=1.0)
+axs[2].plot(myanalysis.jvec[1:jmax],(gammaj_TS_galT_mask_mean[1:jmax]-gammaJ_tg[1:jmax]) / (np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax])/(np.sqrt(nsim))), 'o')
+axs[2].set_ylabel(r'$\Delta \tilde{\Gamma}_j^{TG} /\sigma$')
+axs[2].set_ylim([-4,4])
+axs[2].set_xticks(myanalysis.jvec[1:jmax])
+axs[2].set_xlabel('j')
+plt.savefig(out_dir_plot+f'summary_results_sims_jmax{jmax}_lmax{lmax}_D{myanalysis.B:1.2f}_nsim{nsim}_nside{nside}.png')
 
 ################################################################################
 ###PSEUDO
 
-def cov_pseudo_cl(cltg,cltt, clgg,Mll,  Mll_1x2, lmax, noise_gal_l=None):
+def cov_pseudo_cl(cltg,cltt, clgg,Mll,  Mll_1x2, lmax, fsky=1.,noise_gal_l=None):
 	"""
 	Returns the Cov(Pseudo-C_\ell, Pseudo-C_\ell') 
 	Notes
@@ -328,9 +351,10 @@ def cov_pseudo_cl(cltg,cltt, clgg,Mll,  Mll_1x2, lmax, noise_gal_l=None):
 		clgg_tot = clgg
 	ell= np.arange(lmax+1)
 	covll = np.zeros((ell.shape[0],ell.shape[0]))
-	for l,ell1 in enumerate(ell):
-		for ll,ell2 in enumerate(ell):
-			covll[l,ll] = (Mll_1x2[l,ll]*(cltg[l]*cltg[ll])+Mll[l,ll]*(np.sqrt(cltt[l]*cltt[ll]*clgg_tot[l]*clgg_tot[ll])))/(2.*ell1+1)
+	for ell1 in ell:
+		for ell2 in ell:
+			covll[ell1,ell2] = (Mll_1x2[ell1,ell2]*(cltg[ell1]*cltg[ell2])+Mll[ell1,ell2]*(np.sqrt(cltt[ell1]*cltt[ell2]*clgg_tot[ell1]*clgg_tot[ell2])))/(fsky*(2.*ell1+1))
+			#(Mll_1x2[l,ll]*(cltg[l]*cltg[ll])+Mll[l,ll]*(np.sqrt(cltt[l]*cltt[ll]*clgg_tot[l]*clgg_tot[ll])))/(2.*ell1+1)
 	return covll
 
 def cov_cl(cltg,cltt, clgg, lmax,lmin, fsky=1.,noise_gal_l=None):
@@ -362,8 +386,8 @@ cl_recovered = np.dot(np.linalg.inv(Mll_pl_eu[2:,2:]), cls_tg_mean[2:])
 
 cov_pcl_sim = np.cov(cls_tg.T)
 
-cov_pcl= cov_pseudo_cl(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, Mll=Mll_pl_eu,  Mll_1x2=Mll_comb, lmax=lmax,noise_gal_l=Nll)
-cov_cls = cov_cl(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, lmax=lmax,lmin=2,noise_gal_l=Nll)
+cov_pcl= cov_pseudo_cl(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, Mll=Mll_cross,  Mll_1x2=Mll_comb, lmax=lmax,noise_gal_l=Nll)
+cov_cls = cov_cl(cltg=cl_theory_tg,cltt=cl_theory_tt, clgg=cl_theory_gg, lmax=lmax,lmin=2,fsky=0.36,noise_gal_l=Nll)
 
 ell = np.arange(lmax+1)
 factor = ell*(ell+1)/(2*np.pi)
@@ -417,7 +441,7 @@ ax.set_xticks(np.arange(2, lmax+1,10))
 ax.set_xticklabels(np.arange(2, lmax+1,10),rotation=40)
 ax.set_xlabel(r'$\ell$')
 ax.set_ylabel('% diag(sim cov)/diag(analyt cov)-1')
-plt.legend()
+#plt.legend()
 fig.tight_layout()
 #plt.show()
 
@@ -478,15 +502,17 @@ def S_2_N_cum_ell(s2n, lmax):
 lmax_vec=fl_j(jmax)
 lmax_vec_cl = np.arange(start=2,stop=256,dtype=int)
 
-s2n_mean_sim=S_2_N(gammaj_TS_galT_mask_mean[1:jmax+1], delta_gammaj[1:jmax+1,1:jmax+1])
+s2n_mean_sim=S_2_N(gammaj_TS_galT_mask_mean[1:jmax+1], cov_TS_galT_mask[1:jmax+1,1:jmax+1])
 
 s2n_cum = S_2_N_cum(s2n_mean_sim, myanalysis.jvec)
 #s2n_mean_sim_cl=S_2_N_ell(cls_tg_mean[2:], cov_pcl[2:,2:])
 #s2n_cum_cl = S_2_N_cum_ell(s2n_mean_sim_cl,lmax_vec_cl)
 
 s2n_mean_sim_cl=S_2_N_ell(cl_recovered, cov_cls)
+#s2n_mean_sim_pcl=S_2_N_ell(pcl, cov_pcl)
 
 s2n_cum_cl = S_2_N_cum_ell(s2n_mean_sim_cl,lmax_vec_cl)
+#s2n_cum_pcl = S_2_N_cum_ell(s2n_mean_sim_pcl,lmax_vec_cl)
 
 #s2n_mean_sim_cl=S_2_N_ell(cl_recovered, cov_cls[2:,2:])
 #print(s2n_mean_sim_cl)
@@ -501,8 +527,8 @@ ax = fig.add_subplot(1, 1, 1)
 ax.plot(lmax_vec, s2n_cum, label='Needlets')
 ax.plot(lmax_vec_cl, s2n_cum_cl, label= 'PCL')
 ax.set_xscale('log')
-ax.set_xlim(left=3, right=250)
-ax.set_ylim(top=4.)
+ax.set_xlim(left=3, right=210)
+ax.set_ylim(bottom=0.5,top=4.25)
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
@@ -512,4 +538,5 @@ ax.set_ylabel('Cumulative Signal-to-Noise ratio')
 ax.legend()
 
 fig.tight_layout()
+plt.savefig(out_dir_plot+'SNR_cumulative_betaj_theory_T_gal_jmax12_D1.59_nsim1000_nside128_mask.png')
 plt.show()

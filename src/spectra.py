@@ -307,6 +307,7 @@ class NeedletTheory(object):
         #Mll1  = self.get_Mll(wl, lmax=lmax)
         ell  = np.arange(0, lmax+1, dtype=np.int)
         bjl  = self.b_values**2
+        print(np.dot(Mll_1x2, cl[:lmax+1])[:2])
         return (bjl*(2*ell+1.)*np.dot(Mll_1x2, cl[:lmax+1])).sum(axis=1)/(4*np.pi)
     
     def sigmaJ(self, cl, wl, jmax, lmax):

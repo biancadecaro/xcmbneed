@@ -42,11 +42,17 @@ bad_v_eu = np.where(mask_eu==0)
 mapT_mask[bad_v_pl]=hp.UNSEEN
 mapgal_mask[bad_v_eu]=hp.UNSEEN
 
-fig = plt.figure()
-fig.add_subplot(211) 
-hp.mollview(mapT_mask,cmap= 'viridis', title= 'T maps-masked',hold=True)
-fig.add_subplot(212) 
-hp.mollview(mapgal_mask,cmap= 'viridis', title= 'G maps-masked',hold=True)
+#fig = plt.figure()
+#fig.add_subplot(211) 
+#hp.mollview(mapT_mask,cmap= 'viridis', title= 'T maps-masked',hold=True)
+#fig.add_subplot(212) 
+#hp.mollview(mapgal_mask,cmap= 'viridis', title= 'G maps-masked',hold=True)
+
+hp.mollview(mapT_mask,cmap= 'viridis', title= r'CMB Temperature, $f_{\rm sky}=%.2f$, $N_{\rm side}=%d$'%(fsky_pl,nside),cbar=False)
+plt.savefig('mapTT_Planck_mask.png')
+
+hp.mollview(mapgal_mask,cmap= 'viridis', title= r'Galaxy number counts, $f_{\rm sky}=%.2f$, $N_{\rm side}=%d$'%(fsky_pl,nside),cbar=False)
+plt.savefig('mapGG_Euclid_mask.png')
 
 plt.show()
 
