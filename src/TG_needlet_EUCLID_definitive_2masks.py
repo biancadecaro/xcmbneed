@@ -278,13 +278,14 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 
-ax.plot(myanalysis.jvec[1:], (np.sqrt(np.diag(cov_TS_galT_mask)[1:])/np.sqrt(np.diag(delta_gammaj)[1:])-1)*100 ,'o',color='#2b7bbc')#, label='MASK')
+ax.plot(myanalysis.jvec[1:jmax], (np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax])/np.sqrt(np.diag(delta_gammaj)[1:jmax])-1)*100 ,'o',color='#2b7bbc')#, label='MASK')
 ax.axhline(ls='--', color='grey')
+ax.set_ylim([-25,25])
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.yaxis.set_major_formatter(formatter) 
-ax.set_xticks(myanalysis.jvec[1:])
-ax.set_xticklabels(myanalysis.jvec[1:])
+ax.set_xticks(np.arange(0,jmax+1, 2))
+ax.set_xticklabels(np.arange(0,jmax+1, 2))
 ax.set_xlabel(r'$j$')
 ax.set_ylabel(r'% $\sigma_{\mathrm{sims}}/\sigma_{\mathrm{analytic}}$ - 1')
 
@@ -331,8 +332,10 @@ axs[2].axhline(color='k', ls='--',linewidth=1.0)
 axs[2].plot(myanalysis.jvec[1:jmax],(gammaj_TS_galT_mask_mean[1:jmax]-gammaJ_tg[1:jmax]) / (np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax])/(np.sqrt(nsim))), 'o')
 axs[2].set_ylabel(r'$\Delta \tilde{\Gamma}_j^{TG} /\sigma$')
 axs[2].set_ylim([-4,4])
-axs[2].set_xticks(myanalysis.jvec[1:jmax])
+axs[2].set_xticks(np.arange(0,jmax+1, 2))
+axs[2].set_xticklabels(np.arange(0,jmax+1, 2))
 axs[2].set_xlabel('j')
+
 plt.savefig(out_dir_plot+f'summary_results_sims_jmax{jmax}_lmax{lmax}_D{myanalysis.B:1.2f}_nsim{nsim}_nside{nside}.png')
 
 ################################################################################
@@ -502,7 +505,7 @@ def S_2_N_cum_ell(s2n, lmax):
 lmax_vec=fl_j(jmax)
 lmax_vec_cl = np.arange(start=2,stop=256,dtype=int)
 
-s2n_mean_sim=S_2_N(gammaj_TS_galT_mask_mean[1:jmax+1], cov_TS_galT_mask[1:jmax+1,1:jmax+1])
+s2n_mean_sim=S_2_N(gammaj_TS_galT_mask_mean[1:jmax+1], delta_gammaj[1:jmax+1,1:jmax+1])
 
 s2n_cum = S_2_N_cum(s2n_mean_sim, myanalysis.jvec)
 #s2n_mean_sim_cl=S_2_N_ell(cls_tg_mean[2:], cov_pcl[2:,2:])
@@ -525,7 +528,7 @@ plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax)
 
 ax = fig.add_subplot(1, 1, 1)
 ax.plot(lmax_vec, s2n_cum, label='Needlets')
-ax.plot(lmax_vec_cl, s2n_cum_cl, label= 'PCL')
+ax.plot(lmax_vec_cl, s2n_cum_cl, label= r'Pseudo-$C_{\ell}$')
 ax.set_xscale('log')
 ax.set_xlim(left=3, right=210)
 ax.set_ylim(bottom=0.5,top=4.25)
