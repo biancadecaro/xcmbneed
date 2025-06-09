@@ -313,19 +313,24 @@ ax.set_ylabel(r'$\Delta \Gamma_{j}^{\rm TG}/\sigma$')
 
 fig.tight_layout()
 ################################################################################
-fig = plt.figure(figsize=(8,6))
-gs = fig.add_gridspec(3, hspace=0)
+fig = plt.figure(figsize=(8,9))
+gs = fig.add_gridspec(3, height_ratios=[3,1,1], hspace=0)
 axs = gs.subplots(sharex=True, sharey=False)
 
-plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
+#plt.suptitle(r'$D = %1.2f $' %myanalysis.B +r'$ ,~j_{\mathrm{max}} =$'+str(jmax) + r'$ ,~\ell_{\mathrm{max}} =$'+str(lmax) + r'$ ,~N_{\mathrm{side}} =$'+str(simparams['nside']) + r',$~N_{\mathrm{sim}} = $'+str(nsim))
 
-axs[0].errorbar(myanalysis.jvec[1:jmax],gammaj_TS_galT_mask_mean[1:jmax]*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax]*7.4311e12)/(np.sqrt(nsim)) , fmt='o', ms=3,capthick=1,capsize=3)
-axs[0].errorbar(myanalysis.jvec[1:jmax],gammaj_TS_galT_mask_mean[1:jmax]*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax]*7.4311e12) ,color='grey', fmt='o', ms=3,capthick=1,capsize=3)
+axs[0].errorbar(myanalysis.jvec[1:jmax],gammaj_TS_galT_mask_mean[1:jmax]*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax])*np.sqrt(7.4311e12)/(np.sqrt(nsim)) , fmt='o', ms=3,capthick=1,capsize=3)
+axs[0].errorbar(myanalysis.jvec[1:jmax],gammaj_TS_galT_mask_mean[1:jmax]*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax])*np.sqrt(7.4311e12) ,color='grey', fmt='o', ms=3,capthick=1,capsize=3)
 axs[0].plot(myanalysis.jvec[1:jmax], 1e2*gammaJ_tg[1:jmax]*np.sqrt(7.4311e12), color='k')
+axs[0].set_ylim([-0.3, 1.3])
 axs[0].set_ylabel(r'$ \tilde{\Gamma}_j^{TG}  ~[10^{-2}~\mu K]$')
+axs[0].set_xticks(np.arange(0,jmax+1, 2))
 
 axs[1].axhline(color='k', ls='--',linewidth=1.0)
-axs[1].errorbar(myanalysis.jvec[1:jmax], (gammaj_TS_galT_mask_mean[1:jmax]-gammaJ_tg[1:jmax])*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax]*7.4311e12)/(np.sqrt(nsim)),  fmt='o', ms=3,capthick=1,capsize=3)
+axs[1].errorbar(myanalysis.jvec[1:jmax], (gammaj_TS_galT_mask_mean[1:jmax]-gammaJ_tg[1:jmax])*np.sqrt(7.4311e12)*1e2, yerr=1e2*np.sqrt(np.diag(cov_TS_galT_mask)[1:jmax])*np.sqrt(7.4311e12)/(np.sqrt(nsim)),  fmt='o', ms=3,capthick=1,capsize=3)
+axs[1].set_xticks(np.arange(0,jmax+1, 2))
+axs[1].set_yticks([-0.025, 0, 0.025])
+axs[1].set_ylim([-0.05, 0.05])
 axs[1].set_ylabel(r'$\Delta \tilde{\Gamma}_j^{TG}  ~[10^{-2}~\mu K]$')
 
 axs[2].axhline(color='k', ls='--',linewidth=1.0)
@@ -335,6 +340,7 @@ axs[2].set_ylim([-4,4])
 axs[2].set_xticks(np.arange(0,jmax+1, 2))
 axs[2].set_xticklabels(np.arange(0,jmax+1, 2))
 axs[2].set_xlabel('j')
+plt.tight_layout()
 
 plt.savefig(out_dir_plot+f'summary_results_sims_jmax{jmax}_lmax{lmax}_D{myanalysis.B:1.2f}_nsim{nsim}_nside{nside}.png')
 
